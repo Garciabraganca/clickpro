@@ -1,0 +1,42 @@
+import { PrismaClient, Role } from "@prisma/client";
+import crypto from "crypto";
+
+const prisma = new PrismaClient();
+
+function hashPassword(p: string) {
+  const salt = crypto.randomBytes(16).toString("hex");
+  const hash = crypto.pbkdf2Sync(p, salt, 120000, 32, "sha256").toString("hex");
+  return `${salt}:${hash}`;
+}
+
+async function main() {
+  const email = process.env.ADMIN_SEED_EMAIL!;
+  const pass = process.env.ADMIN_SEED_PASSWORD!;
+  if (!email || !pass) throw new Error("Missing ADMIN_SEED_EMAIL / ADMIN_SEED_PASSWORD");
+
+  const existing = await prisma.user.findUnique({ where: { email } });
+  if (existing) {
+    console.log("Admin already exists:", email);
+    return;
+  }
+
+  await prisma.user.create({
+    data: {
+      email,
+      role: Role.SUPER_ADMIN,
+      passwordHash: hashPassword(pass),
+      name: "Andre (SUPER_ADMIN)"
+    }
+  });
+
+  console.log("Admin created:", email);
+}
+
+main()
+  .catch((e) => {
+    console.error(e);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });

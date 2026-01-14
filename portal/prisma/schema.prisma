@@ -1,0 +1,84 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+
+}
+
+enum Role {
+  SUPER_ADMIN
+  CLIENT_ADMIN
+  CLIENT_USER
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String?
+  passwordHash String
+  role         Role     @default(CLIENT_USER)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  memberships  ClientMember[]
+}
+
+model Client {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  members   ClientMember[]
+  licenses  License[]
+}
+
+model ClientMember {
+  id        String   @id @default(cuid())
+  userId    String
+  clientId  String
+  role      Role     @default(CLIENT_USER)
+  createdAt DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id])
+  client Client @relation(fields: [clientId], references: [id])
+
+  @@unique([userId, clientId])
+}
+
+model License {
+  id          String   @id @default(cuid())
+  clientId    String
+  plan        String
+  expiresAt   DateTime
+  features    Json     @default("{}")
+  limits      Json     @default("{}")
+  token       String   @unique
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  client      Client   @relation(fields: [clientId], references: [id])
+  logs        LicenseValidationLog[]
+}
+
+model LicenseValidationLog {
+  id          String   @id @default(cuid())
+  licenseId   String?
+  token       String
+  valid       Boolean
+  reason      String?
+  ip          String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+
+  license     License? @relation(fields: [licenseId], references: [id])
+}
