@@ -12,12 +12,17 @@
 const http = require('http');
 const url = require('url');
 const fs = require('fs');
+const configStore = require('./lib/config-store');
+const auth = require('./lib/auth');
 
 // Utiliza a API fetch nativa do Node 18+. A versão mínima suportada é
 // Node.js 18, que já possui `global.fetch`. Se estiver em uma versão
 // anterior, atualize seu Node. Não são necessárias dependências extras.
 
 const fetch = global.fetch;
+
+configStore.ensureDirectories();
+auth.ensureAuthStore();
 
 // Armazena as mensagens em memória. Cada item possui:
 // {
@@ -69,6 +74,45 @@ function parseMultipartFormData(body, boundary) {
   return result;
 }
 
+function readBody(req) {
+  return new Promise((resolve, reject) => {
+    let body = '';
+    req.on('data', (chunk) => {
+      body += chunk;
+    });
+    req.on('end', () => resolve(body));
+    req.on('error', reject);
+  });
+}
+
+function parseCookies(cookieHeader) {
+  if (!cookieHeader) {
+    return {};
+  }
+  return cookieHeader.split(';').reduce((acc, pair) => {
+    const [key, value] = pair.trim().split('=');
+    if (key) {
+      acc[key] = decodeURIComponent(value || '');
+    }
+    return acc;
+  }, {});
+}
+
+function sendJson(res, statusCode, payload) {
+  res.writeHead(statusCode, { 'Content-Type': 'application/json' });
+  res.end(JSON.stringify(payload));
+}
+
+function requireAuth(req, res) {
+  const cookies = parseCookies(req.headers.cookie || '');
+  const session = auth.getSession(cookies.session);
+  if (!session) {
+    sendJson(res, 401, { error: 'Não autenticado' });
+    return null;
+  }
+  return session;
+}
+
 /**
  * Envia uma mensagem para um telefone via API do WhatsApp Cloud.
  * Necessita das variáveis de ambiente WHATSAPP_TOKEN e
@@ -76,10 +120,11 @@ function parseMultipartFormData(body, boundary) {
  *
  * @param {string} phone Destinatário em formato E.164 (sem '+').
  * @param {string} message Texto a ser enviado.
+ * @param {{ token?: string, phoneNumberId?: string }} options Credenciais.
  */
-async function sendWhatsAppMessage(phone, message) {
-  const token = process.env.WHATSAPP_TOKEN;
-  const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
+async function sendWhatsAppMessage(phone, message, options = {}) {
+  const token = options.token || process.env.WHATSAPP_TOKEN;
+  const phoneNumberId = options.phoneNumberId || process.env.WHATSAPP_PHONE_NUMBER_ID;
   if (!token || !phoneNumberId) {
     console.error('[WA] API não configurada. Defina WHATSAPP_TOKEN e WHATSAPP_PHONE_NUMBER_ID.');
     return;
@@ -117,7 +162,7 @@ async function sendWhatsAppMessage(phone, message) {
  * @param {string} userMessage Texto recebido do usuário.
  * @returns {string} Resposta do assistente.
  */
-function generateAIResponse(userMessage) {
+async function generateAIResponse(userMessage) {
   const text = (userMessage || '').toLowerCase();
   if (text.includes('preço') || text.includes('preco') || text.includes('valor')) {
     return 'Os planos variam de acordo com suas necessidades. Podemos conversar mais para entender o melhor para você.';
@@ -125,7 +170,35 @@ function generateAIResponse(userMessage) {
   if (text.includes('olá') || text.includes('oi') || text.includes('bom dia') || text.includes('boa tarde') || text.includes('boa noite')) {
     return 'Olá! Como posso te ajudar hoje?';
   }
-  // Resposta padrão
+  const config = configStore.getConfig();
+  if (config && config.openai?.apiKey) {
+    try {
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${config.openai.apiKey}`,
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [
+            {
+              role: 'system',
+              content: `${config.openai.commandPrompt} (Assistant ID: ${config.openai.assistantId})`,
+            },
+            { role: 'user', content: userMessage },
+          ],
+        }),
+      });
+      const data = await response.json();
+      if (response.ok && data.choices && data.choices[0]?.message?.content) {
+        return data.choices[0].message.content.trim();
+      }
+      console.error('[OpenAI] Resposta inválida:', data);
+    } catch (error) {
+      console.error('[OpenAI] Falha ao gerar resposta:', error);
+    }
+  }
   return 'Obrigado pela mensagem! Em breve um de nossos consultores entrará em contato.';
 }
 
@@ -136,14 +209,18 @@ function generateAIResponse(userMessage) {
  * @param {string} phone Identificador do usuário/telefone.
  * @param {string} text Conteúdo da mensagem do usuário.
  */
-function handleIncomingMessage(phone, text) {
+async function handleIncomingMessage(phone, text) {
   // Registrar mensagem do usuário
   messages.push({ role: 'user', content: text, phone });
   // Gerar resposta com IA simples
-  const aiResponse = generateAIResponse(text);
+  const aiResponse = await generateAIResponse(text);
   messages.push({ role: 'ai', content: aiResponse, phone });
   // Enviar mensagem via WhatsApp
-  sendWhatsAppMessage(phone, aiResponse);
+  const config = configStore.getConfig();
+  sendWhatsAppMessage(phone, aiResponse, {
+    token: config?.whatsapp?.token,
+    phoneNumberId: config?.whatsapp?.phoneNumberId,
+  });
 }
 
 /**
@@ -166,19 +243,171 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  if (req.method === 'GET' && path === 'api/auth/status') {
+    sendJson(res, 200, { needsSetup: !auth.isSetup() });
+    return;
+  }
+
+  if (req.method === 'POST' && path === 'api/auth/setup') {
+    readBody(req)
+      .then((body) => {
+        const payload = JSON.parse(body || '{}');
+        auth.setupPassword({ password: payload.password, email: payload.email });
+        const token = auth.createSession();
+        res.writeHead(200, {
+          'Content-Type': 'application/json',
+          'Set-Cookie': `session=${token}; HttpOnly; Path=/; Max-Age=86400`,
+        });
+        res.end(JSON.stringify({ ok: true }));
+      })
+      .catch((error) => {
+        console.error('[AUTH] Erro ao configurar senha:', error);
+        sendJson(res, 400, { error: 'Não foi possível configurar a senha.' });
+      });
+    return;
+  }
+
+  if (req.method === 'POST' && path === 'api/auth/login') {
+    readBody(req)
+      .then((body) => {
+        const payload = JSON.parse(body || '{}');
+        if (!auth.verifyPassword(payload.password)) {
+          sendJson(res, 401, { error: 'Senha inválida.' });
+          return;
+        }
+        const token = auth.createSession();
+        res.writeHead(200, {
+          'Content-Type': 'application/json',
+          'Set-Cookie': `session=${token}; HttpOnly; Path=/; Max-Age=86400`,
+        });
+        res.end(JSON.stringify({ ok: true }));
+      })
+      .catch((error) => {
+        console.error('[AUTH] Erro ao autenticar:', error);
+        sendJson(res, 400, { error: 'Não foi possível autenticar.' });
+      });
+    return;
+  }
+
+  if (req.method === 'GET' && path === 'api/config/status') {
+    if (!requireAuth(req, res)) {
+      return;
+    }
+    sendJson(res, 200, { status: configStore.getStatus() });
+    return;
+  }
+
+  if (req.method === 'GET' && path === 'api/config') {
+    if (!requireAuth(req, res)) {
+      return;
+    }
+    const config = configStore.getConfig();
+    sendJson(res, 200, configStore.sanitizeConfigForClient(config));
+    return;
+  }
+
+  if (req.method === 'POST' && path === 'api/config/save') {
+    if (!requireAuth(req, res)) {
+      return;
+    }
+    readBody(req)
+      .then((body) => {
+        const payload = JSON.parse(body || '{}');
+        configStore.saveConfig(payload);
+        sendJson(res, 200, { ok: true });
+      })
+      .catch((error) => {
+        console.error('[CONFIG] Erro ao salvar:', error);
+        sendJson(res, 400, { error: error.message || 'Erro ao salvar configuração.' });
+      });
+    return;
+  }
+
+  if (req.method === 'POST' && path === 'api/config/test-openai') {
+    if (!requireAuth(req, res)) {
+      return;
+    }
+    readBody(req)
+      .then(async (body) => {
+        const payload = JSON.parse(body || '{}');
+        const config = configStore.getConfig();
+        const apiKey = payload.apiKey || config?.openai?.apiKey;
+        const assistantId = payload.assistantId || config?.openai?.assistantId;
+        if (!apiKey || !assistantId) {
+          sendJson(res, 400, { error: 'Informe apiKey e assistantId.' });
+          return;
+        }
+        const response = await fetch(`https://api.openai.com/v1/assistants/${assistantId}`, {
+          headers: { Authorization: `Bearer ${apiKey}` },
+        });
+        if (!response.ok) {
+          const data = await response.json();
+          sendJson(res, 400, { error: data.error?.message || 'Falha ao validar OpenAI.' });
+          return;
+        }
+        sendJson(res, 200, { ok: true });
+      })
+      .catch((error) => {
+        console.error('[CONFIG] Falha no teste OpenAI:', error);
+        sendJson(res, 400, { error: 'Falha ao testar OpenAI.' });
+      });
+    return;
+  }
+
+  if (req.method === 'POST' && path === 'api/config/test-whatsapp') {
+    if (!requireAuth(req, res)) {
+      return;
+    }
+    readBody(req)
+      .then(async (body) => {
+        const payload = JSON.parse(body || '{}');
+        const config = configStore.getConfig();
+        const token = payload.token || config?.whatsapp?.token;
+        const phoneNumberId = payload.phoneNumberId || config?.whatsapp?.phoneNumberId;
+        if (!token || !phoneNumberId) {
+          sendJson(res, 400, { error: 'Informe token e phoneNumberId.' });
+          return;
+        }
+        const response = await fetch(`https://graph.facebook.com/v19.0/${phoneNumberId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!response.ok) {
+          const data = await response.json();
+          sendJson(res, 400, { error: data.error?.message || 'Falha ao validar WhatsApp.' });
+          return;
+        }
+        sendJson(res, 200, { ok: true });
+      })
+      .catch((error) => {
+        console.error('[CONFIG] Falha no teste WhatsApp:', error);
+        sendJson(res, 400, { error: 'Falha ao testar WhatsApp.' });
+      });
+    return;
+  }
+
   // Endpoint de verificação do webhook (GET /webhook)
   if (req.method === 'GET' && path === 'webhook') {
-    const verifyToken = process.env.VERIFY_TOKEN;
     const mode = parsedUrl.query['hub.mode'];
     const token = parsedUrl.query['hub.verify_token'];
     const challenge = parsedUrl.query['hub.challenge'];
-    if (mode && token && mode === 'subscribe' && token === verifyToken) {
-      console.log('[WEBHOOK] Verificado com sucesso');
+    if (!mode || !token || !challenge) {
+      res.writeHead(400);
+      res.end('Parâmetros ausentes (hub.*)');
+      return;
+    }
+    if (configStore.getStatus() !== 'READY') {
+      res.writeHead(400);
+      res.end('Config não concluída');
+      return;
+    }
+    const verifyToken = configStore.getWebhookToken();
+    console.log('[WEBHOOK] Tentativa de verificação recebida');
+    if (mode === 'subscribe' && token === verifyToken) {
       res.writeHead(200);
       res.end(challenge);
     } else {
       res.writeHead(403);
-      res.end('Token inválido');
+      res.end('Verify token inválido');
     }
     return;
   }
@@ -222,6 +451,9 @@ const server = http.createServer((req, res) => {
 
   // Enviar mensagem manualmente (POST /send-message)
   if (req.method === 'POST' && path === 'send-message') {
+    if (!requireAuth(req, res)) {
+      return;
+    }
     const contentType = req.headers['content-type'] || '';
     let body = '';
     req.on('data', (chunk) => {
@@ -253,7 +485,11 @@ const server = http.createServer((req, res) => {
           return;
         }
         messages.push({ role: 'agent', content: message, phone, attachments });
-        sendWhatsAppMessage(phone, message).then(() => {
+        const config = configStore.getConfig();
+        sendWhatsAppMessage(phone, message, {
+          token: config?.whatsapp?.token,
+          phoneNumberId: config?.whatsapp?.phoneNumberId,
+        }).then(() => {
           res.writeHead(200, { 'Content-Type': 'application/json' });
           res.end(JSON.stringify({ success: true }));
         });
@@ -268,6 +504,9 @@ const server = http.createServer((req, res) => {
 
   // Listar mensagens (GET /messages?phone=...)
   if (req.method === 'GET' && path === 'messages') {
+    if (!requireAuth(req, res)) {
+      return;
+    }
     const phone = parsedUrl.query.phone;
     const filtered = phone ? messages.filter((m) => m.phone === phone) : messages;
     res.writeHead(200, { 'Content-Type': 'application/json' });
