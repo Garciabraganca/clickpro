@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "@/lib/prisma";
 import { verifyLicense } from "@/lib/license";
-
-const prisma = new PrismaClient();
 
 export async function POST(req: Request) {
   const ua = req.headers.get("user-agent") || undefined;
