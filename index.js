@@ -750,9 +750,11 @@ const server = http.createServer((req, res) => {
           'INSERT OR IGNORE INTO contacts (client_id, name, phone, email, created_at) VALUES (?, ?, ?, ?, ?)',
         );
         let inserted = 0;
+        let invalid = 0;
         rows.forEach((row) => {
           const phone = normalizePhone(row.phone || row.telefone || row.numero || row.number);
           if (!phone) {
+            invalid += 1;
             return;
           }
           const result = insert.run(clientId, row.name || row.nome || '', phone, row.email || '', nowIso());
@@ -763,9 +765,9 @@ const server = http.createServer((req, res) => {
         logAudit('contacts.upload', {
           clientId,
           userId: user.userId,
-          metadata: { inserted, total: rows.length },
+          metadata: { inserted, invalid, total: rows.length },
         });
-        sendJson(res, 200, { inserted, total: rows.length });
+        sendJson(res, 200, { inserted, invalid, total: rows.length });
       })
       .catch((error) => {
         console.error('[CONTACT] Falha ao importar CSV:', error);
