@@ -1094,6 +1094,78 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  if (req.method === 'POST' && path.startsWith('api/clients/') && path.endsWith('/meta/tiers')) {
+    const segments = path.split('/');
+    const clientId = Number(segments[2]);
+    const user = requireJwt(req, res);
+    if (!user) {
+      return;
+    }
+    if (!requireClientRole(user, clientId, ['CLIENT_ADMIN'])) {
+      sendJson(res, 403, { error: 'Sem permissão.' });
+      return;
+    }
+    readBody(req)
+      .then(async (body) => {
+        const payload = JSON.parse(body || '{}');
+        if (!payload.businessId) {
+          sendJson(res, 400, { error: 'Informe businessId.' });
+          return;
+        }
+        const whatsapp = getWhatsappCredentials(clientId);
+        if (!whatsapp?.token) {
+          sendJson(res, 400, { error: 'Credenciais WhatsApp ausentes.' });
+          return;
+        }
+        const wabaResponse = await fetch(
+          `https://graph.facebook.com/v19.0/${payload.businessId}/whatsapp_business_accounts`,
+          {
+            headers: { Authorization: `Bearer ${whatsapp.token}` },
+          },
+        );
+        const wabaData = await wabaResponse.json();
+        if (!wabaResponse.ok) {
+          sendJson(res, 400, { error: wabaData.error?.message || 'Falha ao buscar WABA.' });
+          return;
+        }
+        const wabaId = wabaData.data?.[0]?.id;
+        if (!wabaId) {
+          sendJson(res, 400, { error: 'WABA não encontrada.' });
+          return;
+        }
+        const tierResponse = await fetch(
+          `https://graph.facebook.com/v19.0/${wabaId}/tiers`,
+          {
+            headers: { Authorization: `Bearer ${whatsapp.token}` },
+          },
+        );
+        const tierData = await tierResponse.json();
+        if (!tierResponse.ok) {
+          sendJson(res, 400, { error: tierData.error?.message || 'Falha ao buscar tier.' });
+          return;
+        }
+        const tier = tierData.data?.[0]?.tier || 'TIER_1';
+        const tierLimitMap = {
+          TIER_1: 1000,
+          TIER_2: 10000,
+          TIER_3: 100000,
+        };
+        const metaTierLimit = tierLimitMap[tier] || 1000;
+        db.prepare('UPDATE clients SET meta_tier_limit = ? WHERE id = ?').run(metaTierLimit, clientId);
+        logAudit('meta.tier_refresh', {
+          clientId,
+          userId: user.userId,
+          metadata: { tier, metaTierLimit },
+        });
+        sendJson(res, 200, { tier, metaTierLimit });
+      })
+      .catch((error) => {
+        console.error('[META] Falha ao buscar tier:', error);
+        sendJson(res, 400, { error: 'Falha ao buscar tier.' });
+      });
+    return;
+  }
+
   if (req.method === 'GET' && path.startsWith('api/clients/')) {
     const [, , clientIdStr, resource] = path.split('/');
     const clientId = Number(clientIdStr);

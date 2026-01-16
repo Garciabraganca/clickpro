@@ -132,6 +132,27 @@ export default function CredentialsPage() {
     }
   }
 
+  async function fetchMetaTier() {
+    setFeedback(null);
+    setError(null);
+    try {
+      const response = await fetch(`${baseUrl}/api/clients/${clientId}/meta/tiers`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ businessId }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Falha ao buscar tier.");
+      setMetaTierLimit(String(data.metaTierLimit));
+      setFeedback(`Tier Meta atualizado: ${data.tier}.`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro ao buscar tier.");
+    }
+  }
+
   return (
     <div className="min-h-screen bg-slate-950 text-white">
       <header className="border-b border-slate-800">
@@ -265,6 +286,13 @@ export default function CredentialsPage() {
               className="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-black hover:bg-slate-200"
             >
               Salvar WhatsApp
+            </button>
+            <button
+              type="button"
+              onClick={fetchMetaTier}
+              className="rounded-xl border border-slate-700 px-4 py-2 text-sm text-slate-200 hover:bg-slate-800"
+            >
+              Buscar tier automaticamente
             </button>
           </div>
         </section>
