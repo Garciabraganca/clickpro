@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
 import { Inter } from "next/font/google";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -9,31 +11,75 @@ const inter = Inter({ subsets: ["latin"] });
 const steps = [
   {
     id: 1,
-    title: "Sign up your account",
-    description: "Crie seu acesso inicial ao ClickPro.",
+    title: "Crie sua conta",
+    description: "Configure seu acesso ao ClickPro em segundos.",
     active: true,
   },
   {
     id: 2,
-    title: "Set up your workspace",
-    description: "Organize seus clientes e canais.",
+    title: "Configure seu workspace",
+    description: "Organize seus clientes, canais e licenças.",
     active: false,
   },
   {
     id: 3,
-    title: "Set up your profile",
-    description: "Finalize dados e preferências.",
+    title: "Comece a automatizar",
+    description: "Gerencie licenças e escale seu negócio.",
     active: false,
   },
 ];
 
 export default function SignUpPage() {
+  const router = useRouter();
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
     email: "",
     password: "",
   });
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    try {
+      // Create account
+      const response = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || "Erro ao criar conta");
+        setLoading(false);
+        return;
+      }
+
+      // Auto-login after successful signup
+      const result = await signIn("credentials", {
+        email: formData.email,
+        password: formData.password,
+        redirect: false,
+      });
+
+      if (result?.error) {
+        setError("Conta criada, mas erro ao fazer login. Tente fazer login manualmente.");
+        setLoading(false);
+        return;
+      }
+
+      router.push("/dashboard");
+    } catch {
+      setError("Erro de conexão. Tente novamente.");
+      setLoading(false);
+    }
+  };
 
   return (
     <div className={`${inter.className} min-h-screen bg-black text-white`}>
@@ -41,16 +87,34 @@ export default function SignUpPage() {
         <section className="relative flex w-full flex-col justify-between rounded-3xl bg-gradient-to-b from-[#7c3aed] via-[#4c1d95] to-black px-10 py-12 lg:w-1/2">
           <div>
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/40 bg-white/10 text-sm font-semibold">
-                ●
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/20 text-lg font-bold backdrop-blur-sm">
+                CP
               </div>
-              <span className="text-sm font-semibold tracking-wide">OnlyPipe</span>
+              <span className="text-lg font-bold tracking-wide">ClickPro</span>
             </div>
 
-            <h1 className="mt-12 text-4xl font-bold">Get Started with Us</h1>
-            <p className="mt-3 text-sm text-white/70">
-              Complete these easy steps to register your account.
+            <h1 className="mt-12 text-4xl font-bold leading-tight">
+              Simplifique a Gestão<br />de Licenças
+            </h1>
+            <p className="mt-4 text-base text-white/80 leading-relaxed">
+              A plataforma completa para gerenciar licenças, acompanhar métricas
+              e escalar seu negócio de software com facilidade.
             </p>
+
+            <div className="mt-8 flex gap-6 text-sm text-white/70">
+              <div className="flex items-center gap-2">
+                <svg className="h-5 w-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                Gestão centralizada
+              </div>
+              <div className="flex items-center gap-2">
+                <svg className="h-5 w-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                Métricas em tempo real
+              </div>
+            </div>
           </div>
 
           <div className="mt-10 space-y-4">
@@ -81,9 +145,9 @@ export default function SignUpPage() {
 
         <section className="flex w-full flex-col justify-center rounded-3xl bg-black px-10 py-12 lg:w-1/2 lg:px-12">
           <div className="max-w-md">
-            <h2 className="text-3xl font-semibold">Sign Up Account</h2>
+            <h2 className="text-3xl font-semibold">Criar Conta</h2>
             <p className="mt-2 text-sm text-zinc-400">
-              Enter your personal data to create your account.
+              Preencha seus dados para começar a usar o ClickPro.
             </p>
 
             <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -108,17 +172,22 @@ export default function SignUpPage() {
 
             <div className="my-6 flex items-center gap-3 text-xs text-zinc-500">
               <span className="h-px flex-1 bg-zinc-800" />
-              Or
+              Ou
               <span className="h-px flex-1 bg-zinc-800" />
             </div>
 
-            <form className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {error && (
+                <div className="rounded-xl bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-400">
+                  {error}
+                </div>
+              )}
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
-                  <label className="mb-2 block text-xs text-zinc-400">First Name</label>
+                  <label className="mb-2 block text-xs text-zinc-400">Nome</label>
                   <input
                     type="text"
-                    placeholder="eg. John"
+                    placeholder="ex. João"
                     value={formData.firstName}
                     onChange={(event) =>
                       setFormData((prev) => ({ ...prev, firstName: event.target.value }))
@@ -127,10 +196,10 @@ export default function SignUpPage() {
                   />
                 </div>
                 <div>
-                  <label className="mb-2 block text-xs text-zinc-400">Last Name</label>
+                  <label className="mb-2 block text-xs text-zinc-400">Sobrenome</label>
                   <input
                     type="text"
-                    placeholder="eg. Francisco"
+                    placeholder="ex. Silva"
                     value={formData.lastName}
                     onChange={(event) =>
                       setFormData((prev) => ({ ...prev, lastName: event.target.value }))
@@ -144,7 +213,7 @@ export default function SignUpPage() {
                 <label className="mb-2 block text-xs text-zinc-400">Email</label>
                 <input
                   type="email"
-                  placeholder="eg. johnfrans@gmail.com"
+                  placeholder="ex. joao@empresa.com"
                   value={formData.email}
                   onChange={(event) =>
                     setFormData((prev) => ({ ...prev, email: event.target.value }))
@@ -154,11 +223,11 @@ export default function SignUpPage() {
               </div>
 
               <div>
-                <label className="mb-2 block text-xs text-zinc-400">Password</label>
+                <label className="mb-2 block text-xs text-zinc-400">Senha</label>
                 <div className="relative">
                   <input
                     type="password"
-                    placeholder="Enter your password"
+                    placeholder="Digite sua senha"
                     value={formData.password}
                     onChange={(event) =>
                       setFormData((prev) => ({ ...prev, password: event.target.value }))
@@ -175,21 +244,22 @@ export default function SignUpPage() {
                     </svg>
                   </span>
                 </div>
-                <p className="mt-2 text-xs text-zinc-500">Must be at least 8 characters.</p>
+                <p className="mt-2 text-xs text-zinc-500">Mínimo de 8 caracteres.</p>
               </div>
 
               <button
-                type="button"
-                className="w-full rounded-xl bg-white py-3 text-sm font-semibold text-black transition hover:bg-zinc-200"
+                type="submit"
+                disabled={loading}
+                className="w-full rounded-xl bg-violet-600 py-3 text-sm font-semibold text-white transition hover:bg-violet-500 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-violet-500/20"
               >
-                Sign Up
+                {loading ? "Criando conta..." : "Criar Conta Grátis"}
               </button>
             </form>
 
             <p className="mt-6 text-center text-sm text-zinc-500">
-              Already have an account?{" "}
-              <Link href="/login" className="font-semibold text-white hover:text-zinc-200">
-                Log in
+              Já tem uma conta?{" "}
+              <Link href="/login" className="font-semibold text-violet-400 hover:text-violet-300">
+                Entrar
               </Link>
             </p>
           </div>

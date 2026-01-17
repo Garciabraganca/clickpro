@@ -22,8 +22,8 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Redirect authenticated users away from login page
-  if (pathname === "/login") {
+  // Redirect authenticated users away from login and signup pages
+  if (pathname === "/login" || pathname === "/signup") {
     const token = await getToken({
       req: request,
       secret: process.env.NEXTAUTH_SECRET,
@@ -38,5 +38,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/login"],
+  matcher: ["/dashboard/:path*", "/login", "/signup"],
 };
