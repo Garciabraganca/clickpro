@@ -16,12 +16,8 @@ const clientAdminPaths: string[] = [];
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  const token = await getToken({
-    req: request,
-    secret: process.env.NEXTAUTH_SECRET,
-  });
-
-  // Check if route requires authentication
+  // Protected routes
+  const protectedPaths = ["/dashboard", "/admin"];
   const isProtected = protectedPaths.some((path) => pathname.startsWith(path));
   const isAdminOnly = adminOnlyPaths.some((path) => pathname.startsWith(path));
   const isClientAdminOnly = clientAdminPaths.some((path) => pathname.startsWith(path));
@@ -79,15 +75,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    "/dashboard/:path*",
-    "/admin/:path*",
-    "/credentials/:path*",
-    "/contacts/:path*",
-    "/campaigns/:path*",
-    "/templates/:path*",
-    "/conversations/:path*",
-    "/login",
-    "/signup",
-  ],
+  matcher: ["/dashboard/:path*", "/admin/:path*", "/login", "/signup"],
 };
