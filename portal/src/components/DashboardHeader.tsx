@@ -2,6 +2,7 @@
 
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
+import LicenseStatus from "./LicenseStatus";
 
 export default function DashboardHeader() {
   const { data: session } = useSession();
@@ -45,10 +46,19 @@ export default function DashboardHeader() {
               <div className="w-9 h-9 rounded-full bg-violet-600/30 flex items-center justify-center text-violet-300 text-sm font-medium border border-violet-500/30">
                 {(user.name || user.email || "U").charAt(0).toUpperCase()}
               </div>
+              <LicenseStatus />
             </div>
           )}
 
           <nav className="flex items-center gap-3">
+            {user?.role === "SUPER_ADMIN" && (
+              <Link
+                href="/admin"
+                className="text-sm px-3 py-1.5 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/30 hover:bg-amber-500/30 transition-colors"
+              >
+                Admin
+              </Link>
+            )}
             <Link
               href="/"
               className="text-sm text-slate-400 hover:text-white transition-colors"
