@@ -92,6 +92,36 @@ export async function POST(request: Request) {
     );
   } catch (error) {
     console.error("Signup error:", error);
+
+    // Check for Prisma connection errors
+    if (error instanceof Error) {
+      // P1001: Can't reach database server
+      if ("code" in error && (error as { code: string }).code === "P1001") {
+        console.error(
+          "Database connection failed. Please check DATABASE_URL configuration."
+        );
+        return NextResponse.json(
+          {
+            error:
+              "Não foi possível conectar ao banco de dados. Por favor, contate o administrador.",
+          },
+          { status: 503 }
+        );
+      }
+
+      // Check for DATABASE_URL validation errors
+      if (error.message.includes("DATABASE_URL")) {
+        console.error("DATABASE_URL configuration error:", error.message);
+        return NextResponse.json(
+          {
+            error:
+              "Erro de configuração do servidor. Por favor, contate o administrador.",
+          },
+          { status: 503 }
+        );
+      }
+    }
+
     return NextResponse.json(
       { error: "Erro interno do servidor" },
       { status: 500 }

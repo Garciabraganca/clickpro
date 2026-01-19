@@ -49,36 +49,52 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email },
-          include: {
-            memberships: {
-              include: { client: true },
-              take: 1,
+        try {
+          const user = await prisma.user.findUnique({
+            where: { email: credentials.email },
+            include: {
+              memberships: {
+                include: { client: true },
+                take: 1,
+              },
             },
-          },
-        });
+          });
 
-        if (!user) {
+          if (!user) {
+            return null;
+          }
+
+          const isValid = verifyPassword(credentials.password, user.passwordHash);
+          if (!isValid) {
+            return null;
+          }
+
+          // SUPER_ADMIN has no client, CLIENT_ADMIN/CLIENT_USER have a client
+          const membership = user.memberships?.[0];
+
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            role: user.role,
+            clientId: membership?.clientId ?? null,
+            clientName: membership?.client?.name ?? null,
+          };
+        } catch (error) {
+          // Log database connection errors with helpful context
+          console.error("Login error:", error);
+          if (error instanceof Error) {
+            if ("code" in error && (error as { code: string }).code === "P1001") {
+              console.error(
+                "Database connection failed. Please check DATABASE_URL configuration."
+              );
+            }
+            if (error.message.includes("DATABASE_URL")) {
+              console.error("DATABASE_URL configuration error:", error.message);
+            }
+          }
           return null;
         }
-
-        const isValid = verifyPassword(credentials.password, user.passwordHash);
-        if (!isValid) {
-          return null;
-        }
-
-        // SUPER_ADMIN has no client, CLIENT_ADMIN/CLIENT_USER have a client
-        const membership = user.memberships?.[0];
-
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          role: user.role,
-          clientId: membership?.clientId ?? null,
-          clientName: membership?.client?.name ?? null,
-        };
       },
     }),
   ],
