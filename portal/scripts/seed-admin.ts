@@ -1,7 +1,26 @@
+import "dotenv/config";
+import { Pool } from "pg";
+import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient, Role } from "@prisma/client";
 import crypto from "crypto";
 
-const prisma = new PrismaClient();
+function resolveDatabaseUrl() {
+  return (
+    process.env.DATABASE_URL ||
+    process.env.POSTGRES_PRISMA_URL ||
+    process.env.POSTGRES_URL ||
+    ""
+  );
+}
+
+const connectionString = resolveDatabaseUrl();
+if (!connectionString) {
+  throw new Error("DATABASE_URL não está configurada.");
+}
+
+const pool = new Pool({ connectionString });
+const adapter = new PrismaPg(pool);
+const prisma = new PrismaClient({ adapter });
 
 function hashPassword(p: string) {
   const salt = crypto.randomBytes(16).toString("hex");
@@ -39,4 +58,5 @@ main()
   })
   .finally(async () => {
     await prisma.$disconnect();
+    await pool.end();
   });
