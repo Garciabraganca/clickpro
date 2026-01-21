@@ -136,6 +136,18 @@ export async function PATCH(req: Request, { params }: RouteParams) {
       }
     }
 
+    if (
+      updateData.role &&
+      updateData.role !== "SUPER_ADMIN" &&
+      existing.memberships.length === 0 &&
+      !addToClient
+    ) {
+      return NextResponse.json(
+        { error: "Usuários CLIENT_ADMIN e CLIENT_USER precisam de um cliente" },
+        { status: 400 }
+      );
+    }
+
     // Handle password reset
     if (resetPassword) {
       generatedPassword = generateRandomPassword();
