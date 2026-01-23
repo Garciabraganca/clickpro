@@ -146,8 +146,8 @@ export default function TemplatesPage() {
       <header className="border-b border-slate-800">
         <div className="mx-auto flex max-w-6xl flex-col gap-4 px-6 py-6">
           <div>
-            <h1 className="text-2xl font-semibold">Gestão de Templates</h1>
-            <p className="text-sm text-slate-400">
+            <h1 className="text-2xl font-semibold" title="Gerencie seus modelos de mensagem para campanhas do WhatsApp">Gestão de Templates</h1>
+            <p className="text-sm text-slate-400" title="Templates precisam ser aprovados pela Meta antes de serem usados em campanhas">
               Crie templates, envie para aprovação e acompanhe status.
             </p>
           </div>
@@ -164,57 +164,86 @@ export default function TemplatesPage() {
       </header>
 
       <main className="mx-auto grid max-w-6xl grid-cols-1 gap-6 px-6 py-8 lg:grid-cols-[1.1fr_1fr]">
+        {/* Instruções iniciais */}
+        <section className="rounded-2xl border border-slate-800 bg-slate-900/40 p-6 lg:col-span-2">
+          <h2 className="text-lg font-semibold mb-2" title="Crie modelos prontos de mensagem para campanhas">Crie um template de mensagem</h2>
+          <p className="text-sm text-slate-400 mb-4" title="Sem templates aprovados você não consegue enviar campanhas">
+            Você precisa de pelo menos um template aprovado pelo WhatsApp para iniciar campanhas.
+          </p>
+          <div className="text-sm text-slate-300 space-y-2">
+            <p title="Etapas para criar um template">Como funciona:</p>
+            <ol className="list-decimal list-inside text-slate-400 space-y-1">
+              <li title="Primeiro passo">Preencha os dados do template abaixo</li>
+              <li title="Segundo passo">Submeta para aprovação da Meta</li>
+              <li title="Terceiro passo">Aguarde a aprovação (pode levar de minutos a horas)</li>
+              <li title="Quarto passo">Use o template aprovado nas suas campanhas</li>
+            </ol>
+          </div>
+        </section>
+
         <section className="rounded-2xl border border-slate-800 bg-slate-900/40 p-6">
-          <h2 className="text-lg font-semibold">Novo Template</h2>
+          <h2 className="text-lg font-semibold" title="Formulário para criar um novo template de mensagem">Novo Template</h2>
           <div className="mt-4 space-y-4">
             <div>
-              <label className="text-xs text-slate-400">Nome</label>
+              <label className="text-xs text-slate-400" title="Nome único para identificar seu template">Nome</label>
               <input
                 value={name}
                 onChange={(event) => setName(event.target.value)}
                 className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
+                title="Digite um nome único para o template (sem espaços, use underline)"
+                placeholder="meu_template_promocao"
               />
+              <p className="mt-1 text-xs text-slate-500" title="Dica de formatação">Use apenas letras minúsculas, números e underline (_)</p>
             </div>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
-                <label className="text-xs text-slate-400">Idioma</label>
+                <label className="text-xs text-slate-400" title="Idioma do template (código ISO)">Idioma</label>
                 <input
                   value={language}
                   onChange={(event) => setLanguage(event.target.value)}
                   className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
+                  title="Código do idioma no formato ISO (ex: pt_BR)"
+                  placeholder="pt_BR"
                 />
               </div>
               <div>
-                <label className="text-xs text-slate-400">Categoria</label>
+                <label className="text-xs text-slate-400" title="Categoria define como o WhatsApp trata seu template">Categoria</label>
                 <select
                   value={category}
                   onChange={(event) => setCategory(event.target.value)}
                   className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
+                  title="Selecione a categoria adequada para seu template"
                 >
-                  <option value="MARKETING">MARKETING</option>
-                  <option value="UTILITY">UTILITY</option>
-                  <option value="AUTHENTICATION">AUTHENTICATION</option>
+                  <option value="MARKETING" title="Para promoções, ofertas e novidades">MARKETING</option>
+                  <option value="UTILITY" title="Para confirmações, atualizações e alertas">UTILITY</option>
+                  <option value="AUTHENTICATION" title="Para códigos de verificação e login">AUTHENTICATION</option>
                 </select>
+                <p className="mt-1 text-xs text-slate-500" title="Dica de categoria">Marketing: promoções | Utility: confirmações | Auth: códigos</p>
               </div>
             </div>
             <div>
-              <label className="text-xs text-slate-400">Corpo</label>
+              <label className="text-xs text-slate-400" title="Texto principal da mensagem que será enviada">Corpo</label>
               <textarea
                 value={bodyText}
                 onChange={(event) => setBodyText(event.target.value)}
                 className="mt-2 h-28 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
+                title="Digite o texto da mensagem. Use {{1}}, {{2}} para variáveis"
+                placeholder="Olá {{1}}, sua promoção de {{2}} está disponível!"
               />
+              <p className="mt-1 text-xs text-slate-500" title="Dica de variáveis">Use {"{{1}}"}, {"{{2}}"} etc. para campos que variam por contato</p>
             </div>
             <div>
-              <label className="text-xs text-slate-400">Business ID</label>
+              <label className="text-xs text-slate-400" title="ID da sua conta Meta Business para enviar o template">Business ID</label>
               <input
                 value={businessId}
                 onChange={(event) => setBusinessId(event.target.value)}
                 className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
+                title="Cole o ID da sua conta Meta Business"
+                placeholder="123456789012345"
               />
             </div>
             <div>
-              <label className="text-xs text-slate-400">Mídia (opcional)</label>
+              <label className="text-xs text-slate-400" title="Imagem opcional para o cabeçalho do template">Mídia (opcional)</label>
               <input
                 type="file"
                 accept="image/*"
@@ -223,23 +252,27 @@ export default function TemplatesPage() {
                   if (file) handleMediaUpload(file);
                 }}
                 className="mt-2 w-full text-sm text-slate-300"
+                title="Selecione uma imagem para o cabeçalho do template"
               />
+              <p className="mt-1 text-xs text-slate-500" title="Formatos aceitos">Formatos aceitos: JPG, PNG (max 5MB)</p>
               {mediaPreview && (
                 <img
                   src={mediaPreview}
                   alt="Preview"
                   className="mt-3 h-32 rounded-xl border border-slate-700 object-cover"
+                  title="Prévia da imagem selecionada"
                 />
               )}
               {mediaId && (
-                <p className="mt-2 text-xs text-slate-400">media_id: {mediaId}</p>
+                <p className="mt-2 text-xs text-slate-400" title="ID da mídia no servidor Meta">media_id: {mediaId}</p>
               )}
             </div>
-            <label className="flex items-center gap-2 text-sm text-slate-300">
+            <label className="flex items-center gap-2 text-sm text-slate-300" title="Marque para enviar automaticamente para aprovação da Meta">
               <input
                 type="checkbox"
                 checked={submitToMeta}
                 onChange={(event) => setSubmitToMeta(event.target.checked)}
+                title="Se marcado, o template será enviado para aprovação imediatamente"
               />
               Submeter para aprovação
             </label>
@@ -248,6 +281,7 @@ export default function TemplatesPage() {
               onClick={handleCreateTemplate}
               disabled={loading}
               className="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-black hover:bg-slate-200 disabled:opacity-50"
+              title="Criar o template e enviar para aprovação se marcado"
             >
               Criar template
             </button>
@@ -255,22 +289,41 @@ export default function TemplatesPage() {
         </section>
 
         <section className="rounded-2xl border border-slate-800 bg-slate-900/40 p-6">
-          <h2 className="text-lg font-semibold">Templates Existentes</h2>
+          <h2 className="text-lg font-semibold" title="Lista de todos os seus templates criados">Templates Existentes</h2>
+          <p className="mt-1 text-xs text-slate-500" title="Informação de atualização">Atualiza automaticamente a cada 30 segundos</p>
           <div className="mt-4 space-y-3">
+            {templates.length === 0 && (
+              <p className="text-sm text-slate-400" title="Nenhum template criado ainda">Nenhum template encontrado. Crie seu primeiro template ao lado.</p>
+            )}
             {templates.map((template) => (
-              <div key={template.id} className="rounded-xl border border-slate-800 bg-slate-950 p-4">
+              <div key={template.id} className="rounded-xl border border-slate-800 bg-slate-950 p-4" title="Status e detalhes do seu modelo de mensagem">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-semibold text-white">{template.name}</p>
-                    <p className="text-xs text-slate-400">
+                    <p className="text-sm font-semibold text-white" title="Nome do template">{template.name}</p>
+                    <p className="text-xs text-slate-400" title="Idioma e categoria do template">
                       {template.language} • {template.category}
                     </p>
                   </div>
-                  <span className="rounded-full border border-slate-700 px-3 py-1 text-xs text-slate-300">
-                    {template.status}
+                  <span
+                    className={`rounded-full border px-3 py-1 text-xs ${
+                      template.status === "APPROVED"
+                        ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400"
+                        : template.status === "REJECTED"
+                        ? "border-red-500/40 bg-red-500/10 text-red-400"
+                        : "border-slate-700 text-slate-300"
+                    }`}
+                    title={
+                      template.status === "APPROVED"
+                        ? "Template aprovado e pronto para uso em campanhas"
+                        : template.status === "REJECTED"
+                        ? "Template rejeitado pela Meta, revise o conteúdo"
+                        : "Aguardando análise da Meta"
+                    }
+                  >
+                    {template.status === "APPROVED" ? "✔️ Aprovado" : template.status === "REJECTED" ? "❌ Rejeitado" : template.status}
                   </span>
                 </div>
-                <p className="mt-2 text-xs text-slate-500">
+                <p className="mt-2 text-xs text-slate-500" title="Data de criação do template">
                   {new Date(template.created_at).toLocaleString()}
                 </p>
               </div>

@@ -87,8 +87,8 @@ export default function ContactsPage() {
       <header className="border-b border-slate-800">
         <div className="mx-auto flex max-w-6xl flex-col gap-4 px-6 py-6">
           <div>
-            <h1 className="text-2xl font-semibold">Upload de Contatos</h1>
-            <p className="text-sm text-slate-400">
+            <h1 className="text-2xl font-semibold" title="Área para importar contatos para suas campanhas">Upload de Contatos</h1>
+            <p className="text-sm text-slate-400" title="Seus contatos serão validados e duplicatas serão removidas automaticamente">
               Faça upload CSV, valide e dedupe contatos antes das campanhas.
             </p>
           </div>
@@ -105,28 +105,63 @@ export default function ContactsPage() {
       </header>
 
       <main className="mx-auto max-w-6xl px-6 py-8">
+        {/* Instruções de importação */}
+        <section className="rounded-2xl border border-slate-800 bg-slate-900/40 p-6 mb-6">
+          <h2 className="text-lg font-semibold mb-2" title="Área para importar contatos para suas campanhas">Importar contatos</h2>
+          <p className="text-sm text-slate-400 mb-4" title="Instruções para preparar seu arquivo CSV">
+            Envie sua lista de contatos em formato CSV. Use colunas com cabeçalhos:
+          </p>
+          <div className="flex flex-wrap gap-2 mb-4">
+            <code className="rounded bg-slate-800 px-2 py-1 text-xs text-emerald-400" title="Nome do contato (opcional)">name</code>
+            <code className="rounded bg-slate-800 px-2 py-1 text-xs text-emerald-400" title="Número com DDI e DDD (obrigatório)">phone</code>
+            <code className="rounded bg-slate-800 px-2 py-1 text-xs text-emerald-400" title="Email válido do contato (opcional)">email</code>
+          </div>
+          <div className="rounded-xl border border-slate-800 bg-slate-950 p-4">
+            <p className="text-xs text-slate-500 mb-2" title="Exemplo de como montar seu arquivo CSV">Exemplo de arquivo CSV:</p>
+            <pre className="text-xs text-slate-400 font-mono" title="Copie este formato para criar seu arquivo">
+{`name,phone,email
+João Silva,5511999999999,joao@email.com
+Ana Costa,5511888888888,ana@email.com
+Pedro Santos,5521777777777,pedro@email.com`}
+            </pre>
+          </div>
+          <p className="mt-3 text-xs text-slate-500" title="Dica importante sobre formato do telefone">
+            ⚠️ O número deve incluir código do país + DDD + número (sem espaços, parênteses ou traços)
+          </p>
+        </section>
+
         <section className="rounded-2xl border border-slate-800 bg-slate-900/40 p-6">
-          <h2 className="text-lg font-semibold">Importação</h2>
+          <h2 className="text-lg font-semibold" title="Faça upload ou cole seus contatos aqui">Importação</h2>
           <div className="mt-4 space-y-4">
-            <input
-              type="file"
-              accept=".csv"
-              onChange={(event) => {
-                const file = event.target.files?.[0];
-                if (file) handleFile(file);
-              }}
-              className="text-sm text-slate-300"
-            />
-            <textarea
-              value={csvText}
-              onChange={(event) => setCsvText(event.target.value)}
-              className="h-40 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
-              placeholder="Cole o conteúdo CSV aqui"
-            />
+            <div>
+              <label className="text-xs text-slate-400" title="Selecione um arquivo CSV do seu computador">Arquivo CSV</label>
+              <input
+                type="file"
+                accept=".csv"
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  if (file) handleFile(file);
+                }}
+                className="mt-2 text-sm text-slate-300"
+                title="Clique para selecionar um arquivo .csv"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-slate-400" title="Ou cole o conteúdo diretamente aqui">Conteúdo CSV</label>
+              <textarea
+                value={csvText}
+                onChange={(event) => setCsvText(event.target.value)}
+                className="mt-2 h-40 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
+                placeholder="Cole o conteúdo CSV aqui"
+                title="Cole o conteúdo do seu arquivo CSV ou edite diretamente"
+              />
+              <p className="mt-1 text-xs text-slate-500" title="Dica de uso">Você pode editar o conteúdo diretamente antes de importar</p>
+            </div>
             <button
               type="button"
               onClick={uploadContacts}
               className="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-black hover:bg-slate-200"
+              title="Enviar contatos para o sistema"
             >
               Importar contatos
             </button>
@@ -134,13 +169,17 @@ export default function ContactsPage() {
         </section>
 
         <section className="mt-6 rounded-2xl border border-slate-800 bg-slate-900/40 p-6">
-          <h2 className="text-lg font-semibold">Prévia (primeiras linhas)</h2>
+          <h2 className="text-lg font-semibold" title="Prévia dos primeiros contatos do arquivo">Prévia (primeiras linhas)</h2>
+          <p className="mt-1 text-xs text-slate-500" title="Informação sobre a prévia">Mostrando até 5 primeiros contatos para verificação</p>
           <div className="mt-4 space-y-3">
+            {previewRows.length === 0 && (
+              <p className="text-sm text-slate-400" title="Nenhum contato carregado ainda">Nenhum contato para prévia. Faça upload de um arquivo CSV.</p>
+            )}
             {previewRows.map((row, index) => (
-              <div key={index} className="rounded-xl border border-slate-800 bg-slate-950 p-3 text-sm">
-                <p>{row.name || "(sem nome)"}</p>
-                <p className="text-xs text-slate-400">{row.phone}</p>
-                <p className="text-xs text-slate-500">{row.email}</p>
+              <div key={index} className="rounded-xl border border-slate-800 bg-slate-950 p-3 text-sm" title="Dados do contato extraídos do CSV">
+                <p title="Nome do contato">{row.name || "(sem nome)"}</p>
+                <p className="text-xs text-slate-400" title="Número de telefone">{row.phone || "(sem telefone)"}</p>
+                <p className="text-xs text-slate-500" title="Email do contato">{row.email || "(sem email)"}</p>
               </div>
             ))}
           </div>

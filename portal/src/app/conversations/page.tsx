@@ -159,9 +159,9 @@ export default function ConversationsPage() {
       <header className="border-b border-slate-800">
         <div className="mx-auto flex max-w-6xl flex-col gap-4 px-6 py-6">
           <div>
-            <h1 className="text-2xl font-semibold">Inbox de Conversas</h1>
-            <p className="text-sm text-slate-400">
-              Acompanhe mensagens, filtre histórico e responda manualmente.
+            <h1 className="text-2xl font-semibold" title="Central de atendimento manual para responder seus clientes">Inbox de Conversas</h1>
+            <p className="text-sm text-slate-400" title="Visualize e responda mensagens recebidas manualmente">
+              Acompanhe mensagens, filtre histórico e responda manualmente. Use essa tela para acompanhar clientes em tempo real.
             </p>
           </div>
 
@@ -179,19 +179,24 @@ export default function ConversationsPage() {
 
       <main className="mx-auto grid max-w-6xl grid-cols-1 gap-6 px-6 py-8 lg:grid-cols-[320px_1fr]">
         <section className="rounded-2xl border border-slate-800 bg-slate-900/40 p-4">
+          <h2 className="text-lg font-semibold mb-4" title="Lista de todas as conversas com seus contatos">Conversas</h2>
           <div className="mb-4">
-            <label className="text-xs text-slate-400">Buscar contato</label>
+            <label className="text-xs text-slate-400" title="Filtre conversas por nome ou número">Buscar contato</label>
             <input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Nome ou telefone"
               className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
+              title="Digite para filtrar conversas"
             />
           </div>
           {loading && (
-            <p className="text-xs text-slate-500">Carregando conversas...</p>
+            <p className="text-xs text-slate-500" title="Buscando conversas do servidor">Carregando conversas...</p>
           )}
           <div className="space-y-3">
+            {conversations.length === 0 && !loading && (
+              <p className="text-sm text-slate-400" title="Nenhuma conversa encontrada">Nenhuma conversa encontrada. As conversas aparecerão aqui quando você receber mensagens.</p>
+            )}
             {conversations.map((conversation) => (
               <button
                 key={conversation.id}
@@ -200,16 +205,17 @@ export default function ConversationsPage() {
                 className={`w-full rounded-xl border px-4 py-3 text-left transition ${
                   selectedPhone === conversation.phone
                     ? "border-violet-500 bg-violet-500/10"
-                    : "border-slate-800 bg-slate-950"
+                    : "border-slate-800 bg-slate-950 hover:border-slate-700"
                 }`}
+                title={`Clique para ver mensagens de ${conversation.name || conversation.phone}`}
               >
-                <p className="text-sm font-semibold">
+                <p className="text-sm font-semibold" title="Nome ou número do contato">
                   {conversation.name || conversation.phone}
                 </p>
-                <p className="mt-1 text-xs text-slate-400 line-clamp-2">
+                <p className="mt-1 text-xs text-slate-400 line-clamp-2" title="Última mensagem da conversa">
                   {conversation.last_message || "Sem mensagens ainda"}
                 </p>
-                <p className="mt-2 text-[11px] text-slate-500">
+                <p className="mt-2 text-[11px] text-slate-500" title="Data da última mensagem">
                   {conversation.last_at ? new Date(conversation.last_at).toLocaleString() : ""}
                 </p>
               </button>
@@ -220,8 +226,8 @@ export default function ConversationsPage() {
         <section className="rounded-2xl border border-slate-800 bg-slate-900/40 p-6">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
-              <h2 className="text-lg font-semibold">Histórico</h2>
-              <p className="text-xs text-slate-400">
+              <h2 className="text-lg font-semibold" title="Histórico completo de mensagens com o contato selecionado">Histórico</h2>
+              <p className="text-xs text-slate-400" title={selectedPhone ? `Visualizando mensagens do número ${selectedPhone}` : "Clique em uma conversa ao lado"}>
                 {selectedPhone ? `Contato: ${selectedPhone}` : "Selecione um contato"}
               </p>
             </div>
@@ -230,34 +236,37 @@ export default function ConversationsPage() {
                 value={directionFilter}
                 onChange={(event) => setDirectionFilter(event.target.value)}
                 className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
+                title="Filtrar por direção da mensagem"
               >
-                <option value="all">Direção</option>
-                <option value="INBOUND">Inbound</option>
-                <option value="OUTBOUND">Outbound</option>
-                <option value="STATUS">Status</option>
+                <option value="all" title="Mostrar todas as mensagens">Direção</option>
+                <option value="INBOUND" title="Mensagens recebidas do cliente">Inbound</option>
+                <option value="OUTBOUND" title="Mensagens enviadas por você">Outbound</option>
+                <option value="STATUS" title="Notificações de status">Status</option>
               </select>
               <select
                 value={sourceFilter}
                 onChange={(event) => setSourceFilter(event.target.value)}
                 className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
+                title="Filtrar por origem da mensagem"
               >
-                <option value="all">Fonte</option>
-                <option value="AI">IA</option>
-                <option value="HUMAN">Humano</option>
-                <option value="AGENT">Agente</option>
-                <option value="WEBHOOK">Webhook</option>
-                <option value="CAMPAIGN">Campanha</option>
+                <option value="all" title="Mostrar todas as fontes">Fonte</option>
+                <option value="AI" title="Mensagens respondidas pela IA">IA</option>
+                <option value="HUMAN" title="Mensagens enviadas manualmente">Humano</option>
+                <option value="AGENT" title="Mensagens de agentes">Agente</option>
+                <option value="WEBHOOK" title="Mensagens via integração">Webhook</option>
+                <option value="CAMPAIGN" title="Mensagens de campanhas">Campanha</option>
               </select>
               <select
                 value={statusFilter}
                 onChange={(event) => setStatusFilter(event.target.value)}
                 className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
+                title="Filtrar por status de entrega"
               >
-                <option value="all">Status</option>
-                <option value="RECEIVED">Received</option>
-                <option value="QUEUED">Queued</option>
-                <option value="SENT">Sent</option>
-                <option value="READ">Read</option>
+                <option value="all" title="Mostrar todos os status">Status</option>
+                <option value="RECEIVED" title="Mensagem recebida pelo servidor">Received</option>
+                <option value="QUEUED" title="Mensagem na fila de envio">Queued</option>
+                <option value="SENT" title="Mensagem enviada com sucesso">Sent</option>
+                <option value="READ" title="Mensagem lida pelo destinatário">Read</option>
               </select>
             </div>
           </div>
@@ -269,6 +278,16 @@ export default function ConversationsPage() {
           )}
 
           <div className="mt-6 max-h-[420px] space-y-3 overflow-y-auto pr-2">
+            {!selectedPhone && (
+              <p className="text-sm text-slate-400 text-center py-8" title="Selecione uma conversa para ver as mensagens">
+                👈 Selecione uma conversa ao lado para ver as mensagens
+              </p>
+            )}
+            {selectedPhone && filteredMessages.length === 0 && (
+              <p className="text-sm text-slate-400 text-center py-8" title="Nenhuma mensagem encontrada com os filtros atuais">
+                Nenhuma mensagem encontrada com os filtros selecionados
+              </p>
+            )}
             {filteredMessages.map((message) => (
               <div
                 key={message.id}
@@ -277,33 +296,46 @@ export default function ConversationsPage() {
                     ? "border-violet-500/40 bg-violet-500/10"
                     : "border-slate-800 bg-slate-950"
                 }`}
+                title={message.direction === "OUTBOUND" ? "Mensagem enviada" : "Mensagem recebida"}
               >
                 <div className="flex items-center justify-between text-xs text-slate-400">
-                  <span>{message.direction}</span>
-                  <span>{new Date(message.created_at).toLocaleString()}</span>
+                  <span title={message.direction === "OUTBOUND" ? "Mensagem enviada por você" : message.direction === "INBOUND" ? "Mensagem recebida do cliente" : "Notificação de status"}>
+                    {message.direction === "OUTBOUND" ? "📤 Enviada" : message.direction === "INBOUND" ? "📥 Recebida" : "📋 Status"}
+                  </span>
+                  <span title="Data e hora da mensagem">{new Date(message.created_at).toLocaleString()}</span>
                 </div>
-                <p className="mt-2 text-sm text-slate-100">{message.content}</p>
+                <p className="mt-2 text-sm text-slate-100" title="Conteúdo da mensagem">{message.content}</p>
                 <div className="mt-3 flex flex-wrap gap-2 text-[11px] text-slate-400">
-                  <span className="rounded-full bg-slate-800 px-2 py-1">{message.source}</span>
-                  <span className="rounded-full bg-slate-800 px-2 py-1">{message.status}</span>
+                  <span className="rounded-full bg-slate-800 px-2 py-1" title={`Origem: ${message.source === "AI" ? "Inteligência Artificial" : message.source === "HUMAN" ? "Atendente humano" : message.source}`}>
+                    {message.source === "AI" ? "🤖 IA" : message.source === "HUMAN" ? "👤 Humano" : message.source}
+                  </span>
+                  <span className="rounded-full bg-slate-800 px-2 py-1" title={`Status: ${message.status === "SENT" ? "Enviada" : message.status === "READ" ? "Lida" : message.status === "RECEIVED" ? "Recebida" : message.status}`}>
+                    {message.status === "SENT" ? "✓ Enviada" : message.status === "READ" ? "✓✓ Lida" : message.status === "RECEIVED" ? "📩 Recebida" : message.status}
+                  </span>
                 </div>
               </div>
             ))}
           </div>
 
           <div className="mt-6 border-t border-slate-800 pt-4">
-            <label className="text-xs text-slate-400">Nova mensagem</label>
+            <label className="text-xs text-slate-400" title="Digite uma mensagem para enviar manualmente ao cliente">Nova mensagem</label>
             <textarea
               value={outboundMessage}
               onChange={(event) => setOutboundMessage(event.target.value)}
               className="mt-2 h-24 w-full resize-none rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
               placeholder="Escreva uma mensagem manual..."
+              title="Digite aqui a mensagem que deseja enviar ao cliente"
+              disabled={!selectedPhone}
             />
+            {!selectedPhone && (
+              <p className="mt-1 text-xs text-amber-400" title="Selecione um contato primeiro">⚠️ Selecione uma conversa para enviar mensagens</p>
+            )}
             <button
               type="button"
               onClick={sendMessage}
-              disabled={loading || !selectedPhone}
-              className="mt-3 rounded-xl bg-white px-4 py-2 text-sm font-semibold text-black hover:bg-slate-200 disabled:opacity-50"
+              disabled={loading || !selectedPhone || !outboundMessage.trim()}
+              className="mt-3 rounded-xl bg-white px-4 py-2 text-sm font-semibold text-black hover:bg-slate-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              title={!selectedPhone ? "Selecione um contato primeiro" : !outboundMessage.trim() ? "Digite uma mensagem" : "Clique para enviar a mensagem"}
             >
               Enviar mensagem
             </button>
