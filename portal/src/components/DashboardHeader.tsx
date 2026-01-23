@@ -38,14 +38,37 @@ export default function DashboardHeader() {
                   {user.name || user.email}
                 </p>
                 <p className="text-xs text-slate-400">
-                  {user.role === "SUPER_ADMIN" && "Super Admin"}
-                  {user.role === "CLIENT_ADMIN" && `Admin - ${user.clientName || "Cliente"}`}
-                  {user.role === "CLIENT_USER" && `Usuário - ${user.clientName || "Cliente"}`}
+                  {user.clientName || (user.role === "SUPER_ADMIN" ? "Super Admin" : "Usuário")}
                 </p>
               </div>
               <div className="w-9 h-9 rounded-full bg-violet-600/30 flex items-center justify-center text-violet-300 text-sm font-medium border border-violet-500/30">
                 {(user.name || user.email || "U").charAt(0).toUpperCase()}
               </div>
+
+              {/* Role Badges */}
+              <div className="flex items-center gap-2">
+                {user.role === "SUPER_ADMIN" && (
+                  <span className="px-3 py-1 rounded-full bg-amber-500 text-black text-xs font-semibold">
+                    Super Admin
+                  </span>
+                )}
+                {user.role === "CLIENT_ADMIN" && (
+                  <span className="px-3 py-1 rounded-full bg-amber-500 text-black text-xs font-semibold">
+                    Admin
+                  </span>
+                )}
+                {user.role === "CLIENT_USER" && (
+                  <span className="px-3 py-1 rounded-full bg-violet-600 text-white text-xs font-semibold">
+                    Cliente
+                  </span>
+                )}
+                {(user.role === "SUPER_ADMIN" || user.role === "CLIENT_ADMIN") && (
+                  <span className="px-3 py-1 rounded-full bg-violet-600 text-white text-xs font-semibold border border-violet-500">
+                    Admin
+                  </span>
+                )}
+              </div>
+
               <LicenseStatus />
             </div>
           )}

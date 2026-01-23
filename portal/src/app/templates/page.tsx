@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import ApiConfigCard from "@/components/ApiConfigCard";
+import DashboardHeader from "@/components/DashboardHeader";
 
 interface TemplateItem {
   id: number;
@@ -143,6 +144,7 @@ export default function TemplatesPage() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-white">
+      <DashboardHeader />
       <header className="border-b border-slate-800">
         <div className="mx-auto flex max-w-6xl flex-col gap-4 px-6 py-6">
           <div>
