@@ -13,7 +13,9 @@ function hashPassword(password: string): string {
 export async function POST(req: Request) {
   try {
     // Get credentials from environment variables
-    const email = process.env.ADMIN_SEED_EMAIL;
+    // Normalize email to lowercase for consistent storage and lookup
+    const rawEmail = process.env.ADMIN_SEED_EMAIL;
+    const email = rawEmail?.toLowerCase().trim();
     const password = process.env.ADMIN_SEED_PASSWORD;
     const setupSecret = process.env.SETUP_SECRET;
 

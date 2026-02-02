@@ -38,10 +38,10 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { firstName, lastName, email, password } = body;
+    const { firstName, lastName, email: rawEmail, password } = body;
 
     // Validation
-    if (!email || !password) {
+    if (!rawEmail || !password) {
       return NextResponse.json(
         { error: "Email e senha são obrigatórios" },
         { status: 400 }
@@ -54,6 +54,9 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
+
+    // Normalize email to lowercase for consistent storage and lookup
+    const email = rawEmail.toLowerCase().trim();
 
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({
