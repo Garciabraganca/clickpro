@@ -163,7 +163,7 @@ portal/
 ### Obrigatorias
 
 ```env
-# Database (Neon PostgreSQL)
+# Database (Supabase PostgreSQL)
 DATABASE_URL="postgresql://user:pass@host/db?sslmode=require"
 
 # NextAuth
