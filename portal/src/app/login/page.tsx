@@ -23,6 +23,22 @@ function LoginForm() {
     setLoading(true);
 
     try {
+      // Pre-validate credentials to get detailed error messages
+      const validateRes = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const validateData = await validateRes.json();
+
+      if (!validateData.ok) {
+        setError(validateData.error || "Erro ao validar credenciais");
+        setLoading(false);
+        return;
+      }
+
+      // Credentials are valid, now sign in with NextAuth
       const result = await signIn("credentials", {
         email,
         password,
@@ -30,7 +46,7 @@ function LoginForm() {
       });
 
       if (result?.error) {
-        setError("Email ou senha incorretos");
+        setError("Erro ao estabelecer sessão. Tente novamente.");
         setLoading(false);
         return;
       }
@@ -52,6 +68,29 @@ function LoginForm() {
     setSuperAdminLoading(true);
 
     try {
+      // Pre-validate credentials to get detailed error messages
+      const validateRes = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const validateData = await validateRes.json();
+
+      if (!validateData.ok) {
+        setError(validateData.error || "Erro ao validar credenciais");
+        setSuperAdminLoading(false);
+        return;
+      }
+
+      // Check if user is a super admin before signing in
+      if (validateData.user?.role !== "SUPER_ADMIN") {
+        setError("Sua conta não possui permissão de super admin.");
+        setSuperAdminLoading(false);
+        return;
+      }
+
+      // Credentials are valid and user is super admin, now sign in
       const result = await signIn("credentials", {
         email,
         password,
@@ -60,7 +99,7 @@ function LoginForm() {
       });
 
       if (result?.error) {
-        setError("Email ou senha incorretos");
+        setError("Erro ao estabelecer sessão. Tente novamente.");
         setSuperAdminLoading(false);
         return;
       }
@@ -75,7 +114,7 @@ function LoginForm() {
       }
 
       if (session?.user?.role !== "SUPER_ADMIN") {
-        setError("Sua conta não possui permissão de super admin.");
+        setError("Erro de sessão. Tente novamente.");
         await signOut({ redirect: false });
         setSuperAdminLoading(false);
         return;
