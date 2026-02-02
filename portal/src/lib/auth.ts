@@ -8,12 +8,28 @@ export type Role = "SUPER_ADMIN" | "CLIENT_ADMIN" | "CLIENT_USER";
 
 // Reuse the same hash algorithm from seed-admin.ts
 function verifyPassword(password: string, storedHash: string): boolean {
-  const [salt, hash] = storedHash.split(":");
-  if (!salt || !hash) return false;
-  const computed = crypto
-    .pbkdf2Sync(password, salt, 120000, 32, "sha256")
-    .toString("hex");
-  return crypto.timingSafeEqual(Buffer.from(hash, "hex"), Buffer.from(computed, "hex"));
+  try {
+    const [salt, hash] = storedHash.split(":");
+    if (!salt || !hash) return false;
+
+    const computed = crypto
+      .pbkdf2Sync(password, salt, 120000, 32, "sha256")
+      .toString("hex");
+
+    const hashBuffer = Buffer.from(hash, "hex");
+    const computedBuffer = Buffer.from(computed, "hex");
+
+    // Prevent crash if buffer sizes don't match (incompatible hash algorithm)
+    if (hashBuffer.length !== computedBuffer.length) {
+      console.error("Password hash length mismatch - possibly incompatible hash algorithm");
+      return false;
+    }
+
+    return crypto.timingSafeEqual(hashBuffer, computedBuffer);
+  } catch (error) {
+    console.error("Error verifying password:", error);
+    return false;
+  }
 }
 
 export interface SessionUser {
@@ -45,40 +61,53 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Senha", type: "password" },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          return null;
-        }
+        try {
+          if (!credentials?.email || !credentials?.password) {
+            throw new Error("Email e senha são obrigatórios");
+          }
 
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email },
-          include: {
-            memberships: {
-              include: { client: true },
-              take: 1,
+          const user = await prisma.user.findUnique({
+            where: { email: credentials.email.toLowerCase().trim() },
+            include: {
+              memberships: {
+                include: { client: true },
+                take: 1,
+              },
             },
-          },
-        });
+          });
 
-        if (!user) {
-          return null;
+          if (!user) {
+            console.log(`Login failed: user not found for email ${credentials.email}`);
+            throw new Error("Usuário não encontrado");
+          }
+
+          const isValid = verifyPassword(credentials.password, user.passwordHash);
+          if (!isValid) {
+            console.log(`Login failed: invalid password for user ${credentials.email}`);
+            throw new Error("Senha incorreta");
+          }
+
+          // SUPER_ADMIN has no client, CLIENT_ADMIN/CLIENT_USER have a client
+          const membership = user.role === "SUPER_ADMIN" ? null : user.memberships?.[0];
+
+          console.log(`Login successful for user ${credentials.email} with role ${user.role}`);
+
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            role: user.role,
+            clientId: membership?.clientId ?? null,
+            clientName: membership?.client?.name ?? null,
+          };
+        } catch (error) {
+          if (error instanceof Error) {
+            // Re-throw known errors with their messages
+            throw error;
+          }
+          console.error("Unexpected error during authentication:", error);
+          throw new Error("Erro no servidor durante autenticação");
         }
-
-        const isValid = verifyPassword(credentials.password, user.passwordHash);
-        if (!isValid) {
-          return null;
-        }
-
-        // SUPER_ADMIN has no client, CLIENT_ADMIN/CLIENT_USER have a client
-        const membership = user.role === "SUPER_ADMIN" ? null : user.memberships?.[0];
-
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          role: user.role,
-          clientId: membership?.clientId ?? null,
-          clientName: membership?.client?.name ?? null,
-        };
       },
     }),
   ],
