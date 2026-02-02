@@ -162,11 +162,13 @@ export async function POST(request: Request) {
     console.error("Login validation error:", error);
 
     // Check for Prisma database connection errors
+    const dbConnectionErrors = ["P1000", "P1001", "P1002", "P1003"];
     if (
       error &&
       typeof error === "object" &&
       "code" in error &&
-      (error.code === "P1000" || error.code === "P1001" || error.code === "P1002" || error.code === "P1003")
+      typeof error.code === "string" &&
+      dbConnectionErrors.includes(error.code)
     ) {
       console.error("Database connection error during login. Check DATABASE_URL configuration.");
       return NextResponse.json(

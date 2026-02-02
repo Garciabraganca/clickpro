@@ -102,11 +102,13 @@ export const authOptions: NextAuthOptions = {
           };
         } catch (error) {
           // Check for Prisma database connection errors
+          const dbConnectionErrors = ["P1000", "P1001", "P1002", "P1003"];
           if (
             error &&
             typeof error === "object" &&
             "code" in error &&
-            (error.code === "P1000" || error.code === "P1001" || error.code === "P1002" || error.code === "P1003")
+            typeof error.code === "string" &&
+            dbConnectionErrors.includes(error.code)
           ) {
             console.error("Database connection error during authentication. Check DATABASE_URL configuration.");
             throw new Error("Erro de conexão com o banco de dados. Entre em contato com o suporte.");
