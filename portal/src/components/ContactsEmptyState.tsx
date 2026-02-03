@@ -1,18 +1,23 @@
 interface ContactsEmptyStateProps {
-  canImportContacts: boolean;
+  canImportContacts?: boolean;
+  isAuthenticated?: boolean;
   showPermissionMessage?: boolean;
   importHref?: string;
 }
 
 export default function ContactsEmptyState({
   canImportContacts,
-  showPermissionMessage = false,
+  isAuthenticated,
+  showPermissionMessage,
   importHref = "/contacts",
 }: ContactsEmptyStateProps) {
+  const canImport = canImportContacts ?? isAuthenticated ?? false;
+  const shouldShowPermissionMessage = showPermissionMessage ?? Boolean(isAuthenticated);
+
   return (
     <div className="space-y-2 text-sm text-slate-400">
       <p title="Nenhum contato importado">Nenhum contato disponível. Importe contatos primeiro.</p>
-      {canImportContacts ? (
+      {canImport ? (
         <a
           href={importHref}
           className="inline-flex items-center gap-2 rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-3 py-1.5 text-xs font-semibold text-emerald-200 hover:bg-emerald-500/20 transition-colors"
@@ -21,7 +26,7 @@ export default function ContactsEmptyState({
           Importar contatos
         </a>
       ) : (
-        showPermissionMessage && (
+        shouldShowPermissionMessage && (
           <p className="text-xs text-amber-300" title="Sem permissão para importar contatos">
             Sem permissão para importar. Contate o administrador.
           </p>

@@ -27,6 +27,26 @@ assert.doesNotMatch(noPermissionHtml, /Importar contatos/);
 
 console.log("ContactsEmptyState rendering assertions passed.");
 
+const authenticatedHtml = renderToStaticMarkup(
+  React.createElement(ContactsEmptyState, {
+    isAuthenticated: true,
+    importHref: "/contacts",
+  }),
+);
+
+assert.match(authenticatedHtml, /Importar contatos/);
+assert.match(authenticatedHtml, /href="\/contacts"/);
+assert.doesNotMatch(authenticatedHtml, /Sem permissão para importar/);
+
+const unauthenticatedHtml = renderToStaticMarkup(
+  React.createElement(ContactsEmptyState, {
+    isAuthenticated: false,
+  }),
+);
+
+assert.doesNotMatch(unauthenticatedHtml, /Sem permissão para importar/);
+assert.doesNotMatch(unauthenticatedHtml, /Importar contatos/);
+
 const errorNoConfig = getContactsImportError({
   baseUrl: "",
   clientId: "",
