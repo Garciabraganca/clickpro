@@ -773,7 +773,7 @@ const server = http.createServer((req, res) => {
         sendJson(res, 200, { inserted, invalid, total: rows.length });
       })
       .catch((error) => {
-        console.error('[CONTACTS_IMPORT_DENIED] reason=parse_error user=' + user.userId + ' error=' + error.message);
+        console.error(`[CONTACTS_IMPORT_ERROR] reason=parse_error user=${user.userId} client=${clientId}`);
         sendJson(res, 400, { error: 'Falha ao importar contatos.' });
       });
     return;
