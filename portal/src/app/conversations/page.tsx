@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import ApiConfigCard from "@/components/ApiConfigCard";
+import DashboardHeader from "@/components/DashboardHeader";
 
 interface Conversation {
   id: number;
@@ -156,7 +157,9 @@ export default function ConversationsPage() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-white">
-      <header className="border-b border-slate-800">
+      <DashboardHeader />
+
+      <div className="border-b border-slate-800">
         <div className="mx-auto flex max-w-6xl flex-col gap-4 px-6 py-6">
           <div>
             <h1 className="text-2xl font-semibold" title="Central de atendimento manual para responder seus clientes">Inbox de Conversas</h1>
@@ -175,7 +178,7 @@ export default function ConversationsPage() {
             onSave={saveConfig}
           />
         </div>
-      </header>
+      </div>
 
       <main className="mx-auto grid max-w-6xl grid-cols-1 gap-6 px-6 py-8 lg:grid-cols-[320px_1fr]">
         <section className="rounded-2xl border border-slate-800 bg-slate-900/40 p-4">

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import ApiConfigCard from "@/components/ApiConfigCard";
+import DashboardHeader from "@/components/DashboardHeader";
 
 const defaultBaseUrl = process.env.NEXT_PUBLIC_CLICKPRO_API_URL || "http://localhost:3001";
 
@@ -155,7 +156,9 @@ export default function CredentialsPage() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-white">
-      <header className="border-b border-slate-800">
+      <DashboardHeader />
+
+      <div className="border-b border-slate-800">
         <div className="mx-auto flex max-w-6xl flex-col gap-4 px-6 py-6">
           <div>
             <h1 className="text-2xl font-semibold">Painel de Credenciais</h1>
@@ -173,7 +176,7 @@ export default function CredentialsPage() {
             onSave={saveConfig}
           />
         </div>
-      </header>
+      </div>
 
       <main className="mx-auto grid max-w-6xl grid-cols-1 gap-6 px-6 py-8 lg:grid-cols-2">
         {/* Instruções iniciais com legendas */}

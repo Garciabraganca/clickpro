@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import ApiConfigCard from "@/components/ApiConfigCard";
+import DashboardHeader from "@/components/DashboardHeader";
 
 interface TemplateItem {
   id: number;
@@ -143,7 +144,9 @@ export default function TemplatesPage() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-white">
-      <header className="border-b border-slate-800">
+      <DashboardHeader />
+
+      <div className="border-b border-slate-800">
         <div className="mx-auto flex max-w-6xl flex-col gap-4 px-6 py-6">
           <div>
             <h1 className="text-2xl font-semibold" title="Gerencie seus modelos de mensagem para campanhas do WhatsApp">Gestão de Templates</h1>
@@ -161,7 +164,7 @@ export default function TemplatesPage() {
             onSave={saveConfig}
           />
         </div>
-      </header>
+      </div>
 
       <main className="mx-auto grid max-w-6xl grid-cols-1 gap-6 px-6 py-8 lg:grid-cols-[1.1fr_1fr]">
         {/* Instruções iniciais */}
