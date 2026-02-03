@@ -72,6 +72,36 @@ export async function POST(req: Request) {
     }
 
     const now = new Date();
+    const newerActiveLicense = await prisma.license.findFirst({
+      where: {
+        clientId: license.clientId,
+        createdAt: { gt: license.createdAt },
+        expiresAt: { gt: now },
+      },
+      select: { id: true, token: true, createdAt: true },
+    });
+
+    if (newerActiveLicense) {
+      await prisma.licenseValidationLog.create({
+        data: {
+          licenseId: license.id,
+          token: licenseKey,
+          valid: false,
+          reason: "SUPERSEDED",
+          ip,
+          userAgent,
+        },
+      });
+      return NextResponse.json(
+        {
+          ok: false,
+          reason: "SUPERSEDED",
+          error: "Licença substituída por uma nova. Gere/ative a licença mais recente.",
+        },
+        { status: 409 }
+      );
+    }
+
     if (license.expiresAt < now) {
       await prisma.licenseValidationLog.create({
         data: {

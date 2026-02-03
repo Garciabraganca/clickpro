@@ -106,16 +106,28 @@ export async function POST(req: Request) {
       Date.now() + body.expiresInDays * 24 * 60 * 60 * 1000
     );
 
-    const license = await prisma.license.create({
-      data: {
-        token: licenseKey,
-        clientId: targetClientId,
-        plan: body.plan || "standard",
-        expiresAt,
-        features: body.features ?? {},
-        limits: body.limits ?? {},
-      },
-    });
+    const now = new Date();
+    const [, license] = await prisma.$transaction([
+      prisma.license.updateMany({
+        where: {
+          clientId: targetClientId,
+          expiresAt: { gt: now },
+        },
+        data: {
+          expiresAt: now,
+        },
+      }),
+      prisma.license.create({
+        data: {
+          token: licenseKey,
+          clientId: targetClientId,
+          plan: body.plan || "standard",
+          expiresAt,
+          features: body.features ?? {},
+          limits: body.limits ?? {},
+        },
+      }),
+    ]);
 
     return NextResponse.json({
       ok: true,
