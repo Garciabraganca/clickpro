@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 import { getServerSession } from "next-auth";
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 import { authOptions, isSuperAdmin } from "@/lib/auth";
 import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 
@@ -63,6 +64,26 @@ export async function GET() {
       })),
     });
   } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === "P2021") {
+        return NextResponse.json(
+          {
+            error: "Tabela Client não existe no banco. Rode a migração inicial no Supabase.",
+            requiresMigration: true,
+          },
+          { status: 500 }
+        );
+      }
+      if (error.code === "P2022") {
+        return NextResponse.json(
+          {
+            error: "Banco sem a coluna clientId na tabela Client. Rode a migração de clientId no Supabase.",
+            requiresMigration: true,
+          },
+          { status: 500 }
+        );
+      }
+    }
     console.error("Error listing clients:", error);
     return NextResponse.json(
       { error: "Erro ao listar clientes" },
