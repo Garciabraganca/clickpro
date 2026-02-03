@@ -95,13 +95,14 @@ export async function POST(request: Request) {
         },
       });
 
-      // Create the user
+      // Create the user as CLIENT_USER (default role for self-signup)
+      // Only SUPER_ADMIN can promote users to CLIENT_ADMIN
       const user = await tx.user.create({
         data: {
           email,
           name,
           passwordHash,
-          role: "CLIENT_ADMIN",
+          role: "CLIENT_USER",
         },
       });
 
@@ -110,7 +111,7 @@ export async function POST(request: Request) {
         data: {
           userId: user.id,
           clientId: client.id,
-          role: "CLIENT_ADMIN",
+          role: "CLIENT_USER",
         },
       });
 
