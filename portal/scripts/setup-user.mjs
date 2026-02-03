@@ -52,8 +52,9 @@ async function main() {
       console.log('✅ Tabelas já existem');
     }
 
-    // Dados do usuário
-    const email = 'adrbrag18@gmail.com';
+    // Dados do usuário (normalize email to lowercase for consistent storage)
+    const rawEmail = 'adrbrag18@gmail.com';
+    const email = rawEmail.toLowerCase().trim();
     const password = 'Andre180416@';
     const name = 'Andre (SUPER_ADMIN)';
     const passwordHash = hashPassword(password);
@@ -65,10 +66,10 @@ async function main() {
     );
 
     if (userCheck.rows.length > 0) {
-      // Atualizar usuário existente
+      // Atualizar usuário existente (also normalize email to lowercase)
       await pool.query(
-        'UPDATE "User" SET "passwordHash" = $1, role = $2, "updatedAt" = NOW() WHERE LOWER(email) = LOWER($3)',
-        [passwordHash, 'SUPER_ADMIN', email]
+        'UPDATE "User" SET email = $1, "passwordHash" = $2, role = $3, "updatedAt" = NOW() WHERE LOWER(email) = LOWER($4)',
+        [email, passwordHash, 'SUPER_ADMIN', email]
       );
       console.log(`✅ Usuário atualizado: ${email}`);
     } else {

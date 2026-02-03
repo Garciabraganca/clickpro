@@ -107,9 +107,12 @@ export async function POST(request: Request) {
       );
     }
 
+    // Normalize email for lookup
+    const normalizedEmail = email.toLowerCase().trim();
+
     // Find user
     const user = await prisma.user.findUnique({
-      where: { email: email.toLowerCase().trim() },
+      where: { email: normalizedEmail },
       include: {
         memberships: {
           include: { client: true },
@@ -119,6 +122,8 @@ export async function POST(request: Request) {
     });
 
     if (!user) {
+      // Log for debugging (no sensitive data)
+      console.log(`[LOGIN_401] reason=user_not_found email=${normalizedEmail} env=${process.env.VERCEL_ENV || 'local'}`);
       return NextResponse.json(
         {
           ok: false,
@@ -132,6 +137,8 @@ export async function POST(request: Request) {
     // Verify password
     const isValid = verifyPassword(password, user.passwordHash);
     if (!isValid) {
+      // Log for debugging (no sensitive data)
+      console.log(`[LOGIN_401] reason=invalid_password email=${normalizedEmail} userId=${user.id} env=${process.env.VERCEL_ENV || 'local'}`);
       return NextResponse.json(
         {
           ok: false,
@@ -144,6 +151,9 @@ export async function POST(request: Request) {
 
     // Get client info for non-super-admin users
     const membership = user.role === "SUPER_ADMIN" ? null : user.memberships?.[0];
+
+    // Log successful validation (for debugging)
+    console.log(`[LOGIN_OK] email=${normalizedEmail} role=${user.role} env=${process.env.VERCEL_ENV || 'local'}`);
 
     // Return success with user info (no sensitive data)
     return NextResponse.json({
