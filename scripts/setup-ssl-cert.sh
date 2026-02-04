@@ -1,38 +1,16 @@
 #!/bin/bash
-# Script de build para Vercel - Configura certificado SSL do Supabase
+# DEPRECATED: Este script não é mais necessário para Vercel serverless.
 #
-# Este script é executado durante o build step na Vercel e grava o
-# certificado SSL do Supabase a partir da variável de ambiente SUPABASE_CA_CERT.
+# O certificado SSL do Supabase agora é incluído diretamente no bundle
+# via outputFileTracingIncludes no next.config.ts.
 #
-# Uso na Vercel:
-#   1. Adicione o certificado como Secret na Vercel (nome: SUPABASE_CA_CERT)
-#   2. Configure o build command: bash scripts/setup-ssl-cert.sh && npm run build
-#   3. Configure PGSSLROOTCERT=/vercel/path0/certs/prod-ca.crt
+# Para Vercel serverless, configure:
+#   PGSSLROOTCERT=/var/task/certs/supabase-prod-ca.crt
+#
+# Veja docs/vercel-supabase-ssl.md para mais informações.
 
-set -e
-
-CERT_DIR="/vercel/path0/certs"
-CERT_PATH="$CERT_DIR/prod-ca.crt"
-
-# Criar diretório se não existir
-mkdir -p "$CERT_DIR"
-
-# Verificar se a variável SUPABASE_CA_CERT está definida
-if [ -n "$SUPABASE_CA_CERT" ]; then
-    echo "Gravando certificado SSL do Supabase em $CERT_PATH..."
-    echo "$SUPABASE_CA_CERT" > "$CERT_PATH"
-    chmod 644 "$CERT_PATH"
-    echo "Certificado SSL configurado com sucesso!"
-else
-    echo "AVISO: SUPABASE_CA_CERT não definido. Usando certificado local se disponível."
-    # Copiar certificado local se existir
-    LOCAL_CERT="$(dirname "$0")/../certs/supabase-prod-ca.crt"
-    if [ -f "$LOCAL_CERT" ]; then
-        cp "$LOCAL_CERT" "$CERT_PATH"
-        echo "Certificado local copiado para $CERT_PATH"
-    fi
-fi
-
-# Exportar variável para uso posterior
-export PGSSLROOTCERT="$CERT_PATH"
-echo "PGSSLROOTCERT configurado: $PGSSLROOTCERT"
+echo "AVISO: Este script está deprecated."
+echo "O certificado SSL agora é incluído via next.config.ts outputFileTracingIncludes."
+echo "Configure PGSSLROOTCERT=/var/task/certs/supabase-prod-ca.crt no Vercel."
+echo ""
+echo "Veja docs/vercel-supabase-ssl.md para instruções atualizadas."
