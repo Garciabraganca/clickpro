@@ -1,4 +1,5 @@
 import "server-only";
+import { ensureSslCert } from "@/lib/ssl-cert";
 
 function truthyEnv(value: string | undefined) {
   return value?.toLowerCase() === "true";
@@ -16,6 +17,7 @@ function falseyEnv(value: string | undefined) {
  * - PG_USE_LIBPQ_COMPAT=true: Use libpq compatible parameters (for Supabase pooler)
  * - PG_SSL_REJECT_UNAUTHORIZED=false: Accept self-signed/invalid certificates (emergency fallback)
  * - PG_SSL_MODE=require|verify-ca|verify-full|disable: Override SSL mode
+ * - SUPABASE_CA_CERT: SSL certificate content (written to /tmp at runtime)
  */
 export function normalizeDbUrl(rawUrl: string | undefined) {
   if (!rawUrl) {
@@ -64,6 +66,21 @@ export function normalizeDbUrl(rawUrl: string | undefined) {
     } else {
       // Default to require for cloud databases
       params.set("sslmode", "require");
+    }
+  }
+
+  // Handle SSL root certificate path for verify-full/verify-ca modes
+  const sslMode = params.get("sslmode");
+  if (sslMode === "verify-full" || sslMode === "verify-ca") {
+    // If sslrootcert is already set in the URL, try to resolve it dynamically
+    // This handles the case where the cert path might be wrong (e.g., /var/task/certs vs /var/task/portal/certs)
+    const certPath = ensureSslCert();
+    if (certPath) {
+      params.set("sslrootcert", certPath);
+      console.log(`[DB-URL] SSL certificate path set to: ${certPath}`);
+    } else if (params.has("sslrootcert")) {
+      // If we couldn't find a cert but one was specified, log a warning
+      console.warn(`[DB-URL] Warning: sslrootcert specified but certificate not found. Connection may fail.`);
     }
   }
 
