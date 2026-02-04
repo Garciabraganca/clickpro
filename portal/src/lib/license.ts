@@ -187,7 +187,7 @@ export interface ActivationErrorResponse {
 export function formatActivationError(data: ActivationErrorResponse): string {
   const baseError = data.error || data.reason || "Falha ao ativar licença.";
   if (data.hint) {
-    return `${baseError} ${data.hint}`;
+    return `${baseError} — ${data.hint}`;
   }
   return baseError;
 }
