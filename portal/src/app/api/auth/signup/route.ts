@@ -132,6 +132,13 @@ export async function POST(request: Request) {
     );
   } catch (error) {
     console.error("Signup error:", error);
+    console.error("PRISMA_ERROR_RAW", {
+      name: (error as { name?: string } | null)?.name,
+      code: (error as { code?: string } | null)?.code,
+      clientVersion: (error as { clientVersion?: string } | null)?.clientVersion,
+      meta: (error as { meta?: unknown } | null)?.meta,
+      message: (error as { message?: string } | null)?.message,
+    });
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       if (error.code === "P2021") {
         return NextResponse.json(
