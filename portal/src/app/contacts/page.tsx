@@ -83,7 +83,10 @@ export default function ContactsPage() {
       });
       const data = await response.json();
       if (!response.ok || !data.ok) {
-        setActivationError(data.error || data.reason || "Falha ao ativar licença.");
+        const errorMsg = data.hint
+          ? `${data.error || data.reason} ${data.hint}`
+          : data.error || data.reason || "Falha ao ativar licença.";
+        setActivationError(errorMsg);
         return;
       }
       const resolvedClientId = data.clientId ?? clientId;
