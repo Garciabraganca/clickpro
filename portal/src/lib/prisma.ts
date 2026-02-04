@@ -1,11 +1,8 @@
 import "server-only";
-import { Pool } from "@neondatabase/serverless";
-import { PrismaNeon } from "@prisma/adapter-neon";
 import { PrismaClient } from "@prisma/client";
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient;
-  pool: Pool;
 };
 
 function resolveDatabaseUrl() {
@@ -17,25 +14,30 @@ function resolveDatabaseUrl() {
   );
 }
 
-function createPrismaClient() {
-  const connectionString = resolveDatabaseUrl();
-  if (!connectionString) {
-    throw new Error(
-      "DATABASE_URL não está configurada. Defina DATABASE_URL (ou POSTGRES_PRISMA_URL/POSTGRES_URL) no ambiente."
-    );
-  }
-  const pool = globalForPrisma.pool || new Pool({ connectionString });
-  const adapter = new PrismaNeon(pool);
-
-  if (process.env.NODE_ENV !== "production") {
-    globalForPrisma.pool = pool;
-  }
-
-  return new PrismaClient({ adapter });
+function createPrismaClient(connectionString: string) {
+  return new PrismaClient({
+    datasources: {
+      db: {
+        url: connectionString,
+      },
+    },
+  });
 }
 
-export const prisma = globalForPrisma.prisma || createPrismaClient();
+const connectionString = resolveDatabaseUrl();
 
-if (process.env.NODE_ENV !== "production") {
-  globalForPrisma.prisma = prisma;
+const prismaClient = globalForPrisma.prisma
+  ?? (connectionString ? createPrismaClient(connectionString) : null);
+
+export const prisma: PrismaClient = prismaClient
+  ?? new Proxy({} as PrismaClient, {
+    get() {
+      throw new Error(
+        "DATABASE_URL não está configurada. Defina DATABASE_URL (ou POSTGRES_PRISMA_URL/POSTGRES_URL) no ambiente."
+      );
+    },
+  });
+
+if (process.env.NODE_ENV !== "production" && prismaClient) {
+  globalForPrisma.prisma = prismaClient;
 }

@@ -2,6 +2,7 @@
 
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
+import ClickProLogo from "./ClickProLogo";
 import LicenseStatus from "./LicenseStatus";
 
 export default function DashboardHeader() {
@@ -20,9 +21,7 @@ export default function DashboardHeader() {
             href="/"
             className="flex items-center gap-3 hover:opacity-80 transition-opacity"
           >
-            <div className="w-10 h-10 rounded-xl bg-violet-600 flex items-center justify-center text-lg font-bold text-white shadow-lg shadow-violet-500/30">
-              CP
-            </div>
+            <ClickProLogo size={32} className="shrink-0" priority />
             <div>
               <h1 className="text-lg font-bold text-white">ClickPro</h1>
               <p className="text-xs text-slate-400">Dashboard</p>

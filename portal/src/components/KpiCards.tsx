@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
 
 interface KpiCardProps {
   title: string;
@@ -51,7 +50,6 @@ interface ClientMetrics {
 }
 
 export default function KpiCards() {
-  const { data: session } = useSession();
   const [loading, setLoading] = useState(true);
   const [metrics, setMetrics] = useState<AdminMetrics | ClientMetrics | null>(null);
   const [role, setRole] = useState<string | null>(null);

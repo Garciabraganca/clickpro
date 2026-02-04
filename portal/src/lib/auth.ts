@@ -65,11 +65,11 @@ declare module "next-auth" {
   interface Session {
     user: SessionUser;
   }
-  interface User extends SessionUser {}
+  type User = SessionUser;
 }
 
 declare module "next-auth/jwt" {
-  interface JWT extends SessionUser {}
+  type JWT = SessionUser;
 }
 
 export const authOptions: NextAuthOptions = {
@@ -203,7 +203,7 @@ export const authOptions: NextAuthOptions = {
           const providerId = account.providerAccountId;
 
           // Check if user already exists by email
-          let existingUser = await prisma.user.findUnique({
+          const existingUser = await prisma.user.findUnique({
             where: { email },
             include: {
               memberships: {

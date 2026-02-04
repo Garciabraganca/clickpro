@@ -4,6 +4,7 @@ import { Suspense, useState } from "react";
 import { getSession, signIn, signOut } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import ClickProLogo from "@/components/ClickProLogo";
 import PasswordInput from "@/components/PasswordInput";
 
 function LoginForm() {
@@ -278,9 +279,7 @@ export default function LoginPage() {
         {/* Logo */}
         <div className="flex items-center justify-center gap-3 mb-8">
           <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-            <div className="w-12 h-12 rounded-xl bg-violet-600 flex items-center justify-center text-xl font-bold text-white shadow-lg shadow-violet-500/30">
-              CP
-            </div>
+            <ClickProLogo size={48} className="shrink-0" priority />
             <div>
               <h1 className="text-2xl font-bold text-white">ClickPro</h1>
               <p className="text-sm text-slate-400">Portal de Licenciamento</p>

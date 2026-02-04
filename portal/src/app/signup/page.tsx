@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
+import ClickProLogo from "@/components/ClickProLogo";
 import PasswordInput from "@/components/PasswordInput";
 
 const steps = [
@@ -97,9 +98,12 @@ export default function SignUpPage() {
         <section className="relative flex w-full flex-col justify-between rounded-3xl bg-gradient-to-b from-[#7c3aed] via-[#4c1d95] to-black px-10 py-12 lg:w-1/2">
           <div>
             <div className="flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/20 text-lg font-bold backdrop-blur-sm">
-                CP
-              </div>
+              <ClickProLogo
+                size={48}
+                className="rounded-2xl bg-white/20 p-2 backdrop-blur-sm"
+                textClassName="text-white"
+                priority
+              />
               <span className="text-lg font-bold tracking-wide">ClickPro</span>
             </div>
 

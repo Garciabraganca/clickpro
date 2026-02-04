@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
+import ClickProLogo from "@/components/ClickProLogo";
 
 export default function AdminLayout({
   children,
@@ -53,9 +54,7 @@ export default function AdminLayout({
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Link href="/dashboard" className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-violet-600 flex items-center justify-center text-lg font-bold text-white">
-                CP
-              </div>
+              <ClickProLogo size={32} className="shrink-0" priority />
               <div>
                 <h1 className="text-lg font-bold text-white">ClickPro</h1>
                 <p className="text-xs text-amber-400">Admin Panel</p>

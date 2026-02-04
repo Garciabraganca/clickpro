@@ -33,8 +33,8 @@ export type LicensePayload = {
   plan: string;
   issuedAt: string;
   expiresAt: string;
-  features: Record<string, any>;
-  limits: Record<string, any>;
+  features: Record<string, unknown>;
+  limits: Record<string, unknown>;
   jti: string;
 };
 
