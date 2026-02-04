@@ -82,6 +82,19 @@ As credenciais do OpenAI e WhatsApp são armazenadas com criptografia AES em `da
 
 O repositório original do ClikPro contém módulos avançados, como `whatsapp-cloud-api.ts`, `bot-conversation-store.ts` e `bot-conversation-flow-example.ts`, que tratam de fluxos conversacionais complexos, criação de leads e integração com assistentes do OpenAI. Para uma integração completa, esses arquivos podem ser importados e utilizados em vez das funções simplificadas de `index.js`. Este exemplo foi intencionalmente reduzido para permitir a execução local sem dependências externas.
 
+## Deploy na Vercel com Supabase
+
+Para deploy na Vercel com banco de dados PostgreSQL Supabase e conexão SSL segura, consulte o guia completo:
+
+📚 **[Guia de Deploy Vercel + Supabase SSL](docs/vercel-supabase-ssl.md)**
+
+O guia inclui:
+- Download do certificado SSL do Supabase
+- Configuração de Secrets na Vercel
+- Script de build para gravar o certificado
+- Configuração de `PGSSLROOTCERT`
+- Diagnóstico de problemas
+
 ## Licença
 
 Uso interno apenas. Ajuste conforme as necessidades do seu produto.
