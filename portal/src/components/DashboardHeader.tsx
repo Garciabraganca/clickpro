@@ -4,6 +4,7 @@ import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import LicenseStatus from "./LicenseStatus";
 import ThemeToggle from "./ThemeToggle";
+import Image from "next/image";
 
 export default function DashboardHeader() {
   const { data: session } = useSession();
@@ -21,9 +22,13 @@ export default function DashboardHeader() {
             href="/"
             className="flex items-center gap-3 hover:opacity-80 transition-opacity"
           >
-            <div className="w-10 h-10 rounded-xl bg-violet-600 flex items-center justify-center text-lg font-bold text-white shadow-lg shadow-violet-500/30">
-              CP
-            </div>
+            <Image
+              src="/logomarca-click-pro.png"
+              alt="ClickPro"
+              width={40}
+              height={40}
+              className="rounded-xl object-contain shadow-lg shadow-violet-500/30"
+            />
             <div>
               <h1 className="text-lg font-bold text-white">ClickPro</h1>
               <p className="text-xs text-slate-400">Dashboard</p>
