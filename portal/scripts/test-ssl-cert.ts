@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { ensureSupabaseCaCertSync } from "../src/lib/ssl-cert";
 
@@ -13,8 +14,10 @@ const originalPgSslRootCert = process.env.PGSSLROOTCERT;
 delete process.env.SUPABASE_CA_CERT;
 delete process.env.PGSSLROOTCERT;
 
-if (fs.existsSync("/tmp/supabase-ca.crt")) {
-  fs.rmSync("/tmp/supabase-ca.crt");
+const tmpCertPath = path.join(os.tmpdir(), "supabase-ca.crt");
+
+if (fs.existsSync(tmpCertPath)) {
+  fs.rmSync(tmpCertPath);
 }
 
 const certPath = ensureSupabaseCaCertSync();

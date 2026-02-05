@@ -68,12 +68,7 @@ export function ensureSupabaseCaCertSync(): string | null {
 
   const raw = process.env.SUPABASE_CA_CERT;
   if (!raw) {
-    const existingPath = findExistingCertPath();
-    if (existingPath) {
-      process.env.PGSSLROOTCERT = existingPath;
-      return existingPath;
-    }
-    return null;
+    return resolveExistingCertPath();
   }
 
   try {
@@ -91,12 +86,7 @@ export function ensureSupabaseCaCertSync(): string | null {
     return TMP_CERT_PATH;
   } catch (err) {
     console.error(`[SSL] Failed to write certificate synchronously:`, err);
-    const existingPath = findExistingCertPath();
-    if (existingPath) {
-      process.env.PGSSLROOTCERT = existingPath;
-      return existingPath;
-    }
-    return null;
+    return resolveExistingCertPath();
   }
 }
 
@@ -117,6 +107,15 @@ function findExistingCertPath(): string | null {
     }
   }
 
+  return null;
+}
+
+function resolveExistingCertPath(): string | null {
+  const existingPath = findExistingCertPath();
+  if (existingPath) {
+    process.env.PGSSLROOTCERT = existingPath;
+    return existingPath;
+  }
   return null;
 }
 
