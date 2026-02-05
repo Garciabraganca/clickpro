@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { getProviders, signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Brand from "./Brand";
 
 type AuthView = "signin" | "signup";
 
@@ -278,8 +279,7 @@ export default function AuthCard({ initialView = "signin" }: AuthCardProps) {
         <ul className="auth-nav">
           <li className="active-bar" aria-hidden="true" />
           <li className="auth-logo">
-            <div className="logo-badge">CP</div>
-            <span>ClickPro</span>
+            <Brand size="sm" />
           </li>
           <li>
             <button
