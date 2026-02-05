@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, forwardRef, type InputHTMLAttributes } from "react";
+import { useState, useId, forwardRef, type InputHTMLAttributes } from "react";
 
 interface PasswordInputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "type"> {
   /** Label text displayed above the input */
@@ -33,6 +33,7 @@ const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
     ref
   ) => {
     const [isVisible, setIsVisible] = useState(false);
+    const generatedId = useId();
 
     const toggleVisibility = () => {
       setIsVisible((prev) => !prev);
@@ -43,7 +44,7 @@ const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
       e.preventDefault();
     };
 
-    const inputId = id || `password-input-${Math.random().toString(36).slice(2, 9)}`;
+    const inputId = id || `password-input-${generatedId}`;
 
     // Base styles for different variants
     const variantStyles = {

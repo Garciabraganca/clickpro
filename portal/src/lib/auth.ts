@@ -65,10 +65,12 @@ declare module "next-auth" {
   interface Session {
     user: SessionUser;
   }
+  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
   interface User extends SessionUser {}
 }
 
 declare module "next-auth/jwt" {
+  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
   interface JWT extends SessionUser {}
 }
 
@@ -203,7 +205,7 @@ export const authOptions: NextAuthOptions = {
           const providerId = account.providerAccountId;
 
           // Check if user already exists by email
-          let existingUser = await prisma.user.findUnique({
+          const existingUser = await prisma.user.findUnique({
             where: { email },
             include: {
               memberships: {

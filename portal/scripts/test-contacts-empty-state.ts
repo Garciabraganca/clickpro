@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-const ContactsEmptyState = require("../src/components/ContactsEmptyState").default as typeof import("../src/components/ContactsEmptyState").default;
-const { getContactsImportError } = require("../src/lib/contactsImport") as typeof import("../src/lib/contactsImport");
+import ContactsEmptyState from "../src/components/ContactsEmptyState";
+import { getContactsImportError } from "../src/lib/contactsImport";
 
 const canImportHtml = renderToStaticMarkup(
   React.createElement(ContactsEmptyState, {

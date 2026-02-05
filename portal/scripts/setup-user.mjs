@@ -28,7 +28,7 @@ async function main() {
 
   try {
     // Testar conexão
-    const testResult = await pool.query('SELECT 1 as test');
+    await pool.query('SELECT 1 as test');
     console.log('✅ Conexão com o banco de dados OK');
 
     // Verificar se a tabela User existe

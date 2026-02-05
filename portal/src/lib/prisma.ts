@@ -65,7 +65,7 @@ function createPrismaClient() {
   const pool = globalForPrisma.pool || new Pool(poolConfig);
 
   // Handle pool errors gracefully
-  pool.on("error", (err) => {
+  pool.on("error", (err: Error) => {
     console.error("[PRISMA] Pool error:", err.message);
   });
 

@@ -20,7 +20,7 @@ export default function LicenseStatus({
   enforceValid = false,
   onInvalid,
 }: LicenseStatusProps) {
-  const { data: session, status: sessionStatus } = useSession();
+  const { status: sessionStatus } = useSession();
   const [license, setLicense] = useState<LicenseInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
