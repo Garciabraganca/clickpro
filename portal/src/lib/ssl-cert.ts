@@ -75,8 +75,9 @@ export function ensureSslCert(): string | null {
   if (certContent) {
     try {
       // Write cert content to /tmp (always writable in serverless)
-      // Note: File permissions are not security-relevant in serverless /tmp
-      fs.writeFileSync(TMP_CERT_PATH, certContent);
+      // Setting mode 0600 for defense-in-depth, though permissions are less
+      // relevant in serverless /tmp which is isolated per function invocation
+      fs.writeFileSync(TMP_CERT_PATH, certContent, { mode: 0o600 });
       console.log(`[SSL] Certificate written to ${TMP_CERT_PATH} from SUPABASE_CA_CERT env var`);
       return TMP_CERT_PATH;
     } catch (err) {

@@ -41,7 +41,10 @@ export async function GET() {
       diagnostics: {
         cwd: diagnostics.cwd,
         envVarSet: diagnostics.envVarSet,
-        envVarLength: process.env.SUPABASE_CA_CERT?.length ?? 0,
+        // Only show envVarLength in development to avoid leaking info about cert format
+        ...(process.env.NODE_ENV !== "production" && {
+          envVarLength: process.env.SUPABASE_CA_CERT?.length ?? 0,
+        }),
         tmpCertExists: diagnostics.tmpCertExists,
         activePath,
         recommendedPath: diagnostics.recommendedPath,

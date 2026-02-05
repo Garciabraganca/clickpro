@@ -319,6 +319,8 @@ export default function TemplatesPage() {
               />
               <p className="mt-1 text-xs text-slate-500" title="Formatos aceitos">Formatos aceitos: JPG, PNG (max 5MB)</p>
               {mediaPreview && (
+                // Using unoptimized because mediaPreview is a data URL (base64)
+                // from local file, which cannot be optimized by Next.js Image
                 <Image
                   src={mediaPreview}
                   alt="Preview"
