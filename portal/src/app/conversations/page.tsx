@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import ApiConfigCard from "@/components/ApiConfigCard";
 import DashboardHeader from "@/components/DashboardHeader";
 import { formatActivationError } from "@/lib/license.client";
@@ -109,7 +109,7 @@ export default function ConversationsPage() {
     }
   }
 
-  async function fetchConversations() {
+  const fetchConversations = useCallback(async function() {
     if (!baseUrl || !clientId || !token) {
       return;
     }
@@ -132,9 +132,9 @@ export default function ConversationsPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [baseUrl, clientId, token, search]);
 
-  async function fetchMessages(phone: string) {
+  const fetchMessages = useCallback(async function(phone: string) {
     if (!baseUrl || !clientId || !token) {
       return;
     }
@@ -157,7 +157,7 @@ export default function ConversationsPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [baseUrl, clientId, token]);
 
   async function sendMessage() {
     if (!selectedPhone || !outboundMessage.trim()) {
@@ -191,13 +191,13 @@ export default function ConversationsPage() {
       fetchConversations();
     }, 350);
     return () => clearTimeout(timeout);
-  }, [baseUrl, token, clientId, search]);
+  }, [fetchConversations]);
 
   useEffect(() => {
     if (selectedPhone) {
       fetchMessages(selectedPhone);
     }
-  }, [selectedPhone]);
+  }, [selectedPhone, fetchMessages]);
 
   const filteredMessages = useMemo(() => {
     return messages.filter((message) => {

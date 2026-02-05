@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getSslCertDiagnostics } from "@/lib/ssl-cert";
+import { getSslCertDiagnostics, ensureSslCert } from "@/lib/ssl-cert";
 
 /**
  * Debug endpoint to diagnose SSL certificate path issues on Vercel
@@ -10,10 +10,11 @@ import { getSslCertDiagnostics } from "@/lib/ssl-cert";
  * - Current working directory
  * - Whether SUPABASE_CA_CERT env var is set
  * - Which certificate file paths exist
- * - The active certificate path being used
+ * - The recommended certificate path
  * 
- * WARNING: This endpoint should be removed or protected in production.
- * It is intended for temporary debugging only.
+ * Security: This endpoint is disabled in production by default.
+ * Set ALLOW_SSL_DEBUG=true in environment variables to enable temporarily.
+ * IMPORTANT: Remove or disable this endpoint after debugging is complete.
  */
 export async function GET() {
   // Only allow in non-production or with explicit debug flag
@@ -22,13 +23,16 @@ export async function GET() {
   
   if (!allowDebug) {
     return NextResponse.json(
-      { error: "Debug endpoint disabled in production. Set ALLOW_SSL_DEBUG=true to enable." },
+      { error: "Debug endpoint disabled in production. Set ALLOW_SSL_DEBUG=true to enable temporarily." },
       { status: 403 }
     );
   }
 
   try {
     const diagnostics = getSslCertDiagnostics();
+    
+    // Actually ensure the cert exists (with side effects) to show the active path
+    const activePath = ensureSslCert();
     
     return NextResponse.json({
       success: true,
@@ -39,11 +43,12 @@ export async function GET() {
         envVarSet: diagnostics.envVarSet,
         envVarLength: process.env.SUPABASE_CA_CERT?.length ?? 0,
         tmpCertExists: diagnostics.tmpCertExists,
-        activePath: diagnostics.activePath,
+        activePath,
+        recommendedPath: diagnostics.recommendedPath,
         filePaths: diagnostics.filePaths,
       },
-      recommendation: diagnostics.activePath 
-        ? `Certificate found at: ${diagnostics.activePath}`
+      recommendation: activePath 
+        ? `Certificate active at: ${activePath}`
         : "No certificate found. Set SUPABASE_CA_CERT env var with the certificate content.",
     });
   } catch (error) {

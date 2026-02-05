@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import ApiConfigCard from "@/components/ApiConfigCard";
 import DashboardHeader from "@/components/DashboardHeader";
 import { formatActivationError } from "@/lib/license.client";
@@ -96,7 +96,7 @@ export default function CredentialsPage() {
     }
   }
 
-  async function fetchStatus() {
+  const fetchStatus = useCallback(async function() {
     if (!baseUrl || !clientId || !token) return;
     const response = await fetch(`${baseUrl}/api/clients/${clientId}/credentials/status`, {
       headers: { Authorization: `Bearer ${token}` },
@@ -106,11 +106,11 @@ export default function CredentialsPage() {
     setStatus({ openaiSet: data.openaiSet, whatsappSet: data.whatsappSet });
     if (data.aiDailyLimit) setAiDailyLimit(String(data.aiDailyLimit));
     if (data.metaTierLimit) setMetaTierLimit(String(data.metaTierLimit));
-  }
+  }, [baseUrl, clientId, token]);
 
   useEffect(() => {
     fetchStatus();
-  }, [baseUrl, token, clientId]);
+  }, [fetchStatus]);
 
   async function saveOpenAi() {
     setFeedback(null);

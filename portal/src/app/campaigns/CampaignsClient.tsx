@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import ApiConfigCard from "@/components/ApiConfigCard";
 import ContactsEmptyState from "@/components/ContactsEmptyState";
@@ -34,7 +34,7 @@ interface CampaignItem {
 const defaultBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "https://clickpro.grupogarciaseguradoras.com.br";
 
 export default function CampaignsClient() {
-  const { data: session, status: sessionStatus } = useSession();
+  const { status: sessionStatus } = useSession();
   const [baseUrl, setBaseUrl] = useState(defaultBaseUrl);
   const [token, setToken] = useState("");
   const [clientId, setClientId] = useState("");
@@ -125,7 +125,7 @@ export default function CampaignsClient() {
     }
   }
 
-  async function fetchTemplates() {
+  const fetchTemplates = useCallback(async function() {
     if (!baseUrl || !clientId || !token) return;
     const response = await fetch(`${baseUrl}/api/clients/${clientId}/templates`, {
       headers: { Authorization: `Bearer ${token}` },
@@ -133,9 +133,9 @@ export default function CampaignsClient() {
     if (!response.ok) return;
     const data = await response.json();
     setTemplates(data.templates || []);
-  }
+  }, [baseUrl, clientId, token]);
 
-  async function fetchContacts() {
+  const fetchContacts = useCallback(async function() {
     if (!baseUrl || !clientId || !token) return;
     const response = await fetch(
       `${baseUrl}/api/clients/${clientId}/contacts?search=${encodeURIComponent(search)}`,
@@ -146,9 +146,9 @@ export default function CampaignsClient() {
     if (!response.ok) return;
     const data = await response.json();
     setContacts(data.contacts || []);
-  }
+  }, [baseUrl, clientId, token, search]);
 
-  async function fetchCampaigns() {
+  const fetchCampaigns = useCallback(async function() {
     if (!baseUrl || !clientId || !token) return;
     const response = await fetch(`${baseUrl}/api/clients/${clientId}/campaigns`, {
       headers: { Authorization: `Bearer ${token}` },
@@ -156,18 +156,18 @@ export default function CampaignsClient() {
     if (!response.ok) return;
     const data = await response.json();
     setCampaigns(data.campaigns || []);
-  }
+  }, [baseUrl, clientId, token]);
 
   useEffect(() => {
     fetchTemplates();
     fetchContacts();
     fetchCampaigns();
-  }, [baseUrl, token, clientId]);
+  }, [fetchTemplates, fetchContacts, fetchCampaigns]);
 
   useEffect(() => {
     const timeout = setTimeout(fetchContacts, 300);
     return () => clearTimeout(timeout);
-  }, [search]);
+  }, [fetchContacts]);
 
   const approvedTemplates = useMemo(
     () => templates.filter((template) => template.status === "APPROVED" || template.status === "approved"),

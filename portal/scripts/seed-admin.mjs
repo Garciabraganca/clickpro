@@ -1,8 +1,9 @@
-const { PrismaClient } = require("@prisma/client");
-const crypto = require("crypto");
+import { PrismaClient } from "@prisma/client";
+import crypto from "crypto";
+import pg from "pg";
+import { PrismaPg } from "@prisma/adapter-pg";
 
-const { Pool } = require('pg');
-const { PrismaPg } = require('@prisma/adapter-pg');
+const { Pool } = pg;
 
 const connectionString = process.env.DATABASE_URL;
 const pool = new Pool({ connectionString });

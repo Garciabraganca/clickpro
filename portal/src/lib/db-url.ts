@@ -72,15 +72,22 @@ export function normalizeDbUrl(rawUrl: string | undefined) {
   // Handle SSL root certificate path for verify-full/verify-ca modes
   const sslMode = params.get("sslmode");
   if (sslMode === "verify-full" || sslMode === "verify-ca") {
-    // If sslrootcert is already set in the URL, try to resolve it dynamically
-    // This handles the case where the cert path might be wrong (e.g., /var/task/certs vs /var/task/portal/certs)
-    const certPath = ensureSslCert();
-    if (certPath) {
-      params.set("sslrootcert", certPath);
-      console.log(`[DB-URL] SSL certificate path set to: ${certPath}`);
-    } else if (params.has("sslrootcert")) {
-      // If we couldn't find a cert but one was specified, log a warning
-      console.warn(`[DB-URL] Warning: sslrootcert specified but certificate not found. Connection may fail.`);
+    const existingSslRootCert = params.get("sslrootcert");
+    
+    // Only resolve cert path if:
+    // 1. No sslrootcert is set, OR
+    // 2. SUPABASE_CA_CERT env var is set (prefer env var approach)
+    const shouldResolveCert = !existingSslRootCert || process.env.SUPABASE_CA_CERT;
+    
+    if (shouldResolveCert) {
+      const certPath = ensureSslCert();
+      if (certPath) {
+        params.set("sslrootcert", certPath);
+        console.log(`[DB-URL] SSL certificate path set to: ${certPath}`);
+      } else if (!existingSslRootCert) {
+        // Only warn if no cert was specified and we couldn't find one
+        console.warn(`[DB-URL] Warning: sslmode=${sslMode} but no certificate found. Connection may fail.`);
+      }
     }
   }
 

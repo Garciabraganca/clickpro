@@ -13,6 +13,9 @@ import * as path from "path";
  * Usage:
  *   const certPath = ensureSslCert();
  *   // Use certPath in your database connection string
+ * 
+ * Note: In serverless environments, /tmp is isolated per function invocation
+ * and ephemeral, so file permissions provide no additional security benefit.
  */
 
 const TMP_CERT_PATH = "/tmp/supabase-ca.crt";
@@ -24,6 +27,37 @@ const CERT_FILE_PATHS = [
   "/var/task/certs/supabase-prod-ca.crt",            // Vercel default
   "/var/task/portal/certs/supabase-prod-ca.crt",    // Vercel when root is repo root
 ];
+
+/**
+ * Checks if a file path exists.
+ */
+function fileExists(filePath: string): boolean {
+  try {
+    return fs.existsSync(filePath);
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Finds the first existing certificate file path from the list of possible paths.
+ * Does not write any files - only checks existing paths.
+ */
+function findExistingCertPath(): string | null {
+  // Check if cert already exists in /tmp (may have been written previously)
+  if (fileExists(TMP_CERT_PATH)) {
+    return TMP_CERT_PATH;
+  }
+
+  // Check file paths (for local dev or when cert is bundled)
+  for (const certPath of CERT_FILE_PATHS) {
+    if (fileExists(certPath)) {
+      return certPath;
+    }
+  }
+
+  return null;
+}
 
 /**
  * Ensures the SSL certificate is available and returns its path.
@@ -41,7 +75,8 @@ export function ensureSslCert(): string | null {
   if (certContent) {
     try {
       // Write cert content to /tmp (always writable in serverless)
-      fs.writeFileSync(TMP_CERT_PATH, certContent, { mode: 0o600 });
+      // Note: File permissions are not security-relevant in serverless /tmp
+      fs.writeFileSync(TMP_CERT_PATH, certContent);
       console.log(`[SSL] Certificate written to ${TMP_CERT_PATH} from SUPABASE_CA_CERT env var`);
       return TMP_CERT_PATH;
     } catch (err) {
@@ -50,22 +85,11 @@ export function ensureSslCert(): string | null {
     }
   }
 
-  // Priority 2: Check if cert already exists in /tmp
-  if (fs.existsSync(TMP_CERT_PATH)) {
-    console.log(`[SSL] Using existing certificate at ${TMP_CERT_PATH}`);
-    return TMP_CERT_PATH;
-  }
-
-  // Priority 3: Check file paths (for local dev or when cert is bundled)
-  for (const certPath of CERT_FILE_PATHS) {
-    try {
-      if (fs.existsSync(certPath)) {
-        console.log(`[SSL] Found certificate at ${certPath}`);
-        return certPath;
-      }
-    } catch {
-      // Ignore errors for paths that don't exist
-    }
+  // Priority 2 & 3: Check existing file paths
+  const existingPath = findExistingCertPath();
+  if (existingPath) {
+    console.log(`[SSL] Using certificate at ${existingPath}`);
+    return existingPath;
   }
 
   console.log("[SSL] No SSL certificate found. SSL cert path will not be set.");
@@ -75,29 +99,33 @@ export function ensureSslCert(): string | null {
 /**
  * Gets diagnostic information about SSL certificate availability.
  * Useful for debugging in production environments.
+ * 
+ * Note: This function does NOT write any files - it only checks what exists.
+ * Call ensureSslCert() separately if you need to write the cert from env var.
  */
 export function getSslCertDiagnostics(): {
   envVarSet: boolean;
   tmpCertExists: boolean;
   filePaths: Array<{ path: string; exists: boolean }>;
   cwd: string;
-  activePath: string | null;
+  recommendedPath: string | null;
 } {
   const envVarSet = !!process.env.SUPABASE_CA_CERT;
-  const tmpCertExists = fs.existsSync(TMP_CERT_PATH);
+  const tmpCertExists = fileExists(TMP_CERT_PATH);
   
   const filePaths = CERT_FILE_PATHS.map((p) => ({
     path: p,
-    exists: fs.existsSync(p),
+    exists: fileExists(p),
   }));
 
-  const activePath = ensureSslCert();
+  // Find the first existing path without side effects
+  const recommendedPath = findExistingCertPath();
 
   return {
     envVarSet,
     tmpCertExists,
     filePaths,
     cwd: process.cwd(),
-    activePath,
+    recommendedPath,
   };
 }

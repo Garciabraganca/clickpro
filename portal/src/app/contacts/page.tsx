@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import type ExcelJSType from "exceljs";
 import ApiConfigCard from "@/components/ApiConfigCard";
 import DashboardHeader from "@/components/DashboardHeader";
 import { getContactsImportError } from "@/lib/contactsImport";
@@ -124,6 +125,7 @@ export default function ContactsPage() {
   }
 
   async function parseExcelPreview(buffer: ArrayBuffer): Promise<PreviewRow[]> {
+    const ExcelJS = await import("exceljs") as typeof ExcelJSType;
     const workbook = new ExcelJS.Workbook();
     await workbook.xlsx.load(buffer);
     
@@ -132,7 +134,7 @@ export default function ContactsPage() {
     
     const headerRow = worksheet.getRow(1);
     const headers: string[] = [];
-    headerRow.eachCell((cell, colNumber) => {
+    headerRow.eachCell((cell: ExcelJSType.Cell, colNumber: number) => {
       headers[colNumber - 1] = String(cell.value || '').trim().toLowerCase();
     });
     
@@ -142,7 +144,7 @@ export default function ContactsPage() {
     for (let rowNumber = 2; rowNumber <= maxRows; rowNumber++) {
       const dataRow = worksheet.getRow(rowNumber);
       const row: PreviewRow = {};
-      dataRow.eachCell((cell, colNumber) => {
+      dataRow.eachCell((cell: ExcelJSType.Cell, colNumber: number) => {
         const header = headers[colNumber - 1];
         const value = String(cell.value || '').trim();
         

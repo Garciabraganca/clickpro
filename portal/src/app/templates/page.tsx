@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
+import Image from "next/image";
 import ApiConfigCard from "@/components/ApiConfigCard";
 import DashboardHeader from "@/components/DashboardHeader";
 import { formatActivationError } from "@/lib/license.client";
@@ -104,7 +105,7 @@ export default function TemplatesPage() {
     }
   }
 
-  async function fetchTemplates() {
+  const fetchTemplates = useCallback(async function() {
     if (!baseUrl || !clientId || !token) return;
     const response = await fetch(`${baseUrl}/api/clients/${clientId}/templates`, {
       headers: { Authorization: `Bearer ${token}` },
@@ -112,13 +113,13 @@ export default function TemplatesPage() {
     if (!response.ok) return;
     const data = await response.json();
     setTemplates(data.templates || []);
-  }
+  }, [baseUrl, clientId, token]);
 
   useEffect(() => {
     fetchTemplates();
     const interval = setInterval(fetchTemplates, 30000);
     return () => clearInterval(interval);
-  }, [baseUrl, token, clientId]);
+  }, [fetchTemplates]);
 
   async function handleMediaUpload(file: File) {
     setError(null);
@@ -318,11 +319,14 @@ export default function TemplatesPage() {
               />
               <p className="mt-1 text-xs text-slate-500" title="Formatos aceitos">Formatos aceitos: JPG, PNG (max 5MB)</p>
               {mediaPreview && (
-                <img
+                <Image
                   src={mediaPreview}
                   alt="Preview"
-                  className="mt-3 h-32 rounded-xl border border-slate-700 object-cover"
+                  width={128}
+                  height={128}
+                  className="mt-3 h-32 w-auto rounded-xl border border-slate-700 object-cover"
                   title="Prévia da imagem selecionada"
+                  unoptimized
                 />
               )}
               {mediaId && (

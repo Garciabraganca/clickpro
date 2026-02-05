@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 
 interface LicenseClient {
@@ -47,7 +47,7 @@ export default function AdminLicensesPage() {
   const [formSuccess, setFormSuccess] = useState<string | null>(null);
   const [newToken, setNewToken] = useState<string | null>(null);
 
-  async function fetchLicenses() {
+  const fetchLicenses = useCallback(async function() {
     try {
       const res = await fetch(`/api/admin/licenses?status=${filter}`);
       const data = await res.json();
@@ -61,9 +61,9 @@ export default function AdminLicensesPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [filter]);
 
-  async function fetchClients() {
+  const fetchClients = useCallback(async function() {
     try {
       const res = await fetch("/api/admin/clients");
       const data = await res.json();
@@ -73,12 +73,12 @@ export default function AdminLicensesPage() {
     } catch {
       // Silent fail
     }
-  }
+  }, []);
 
   useEffect(() => {
     fetchLicenses();
     fetchClients();
-  }, [filter]);
+  }, [fetchLicenses, fetchClients]);
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
