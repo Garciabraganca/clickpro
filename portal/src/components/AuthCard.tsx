@@ -293,7 +293,9 @@ export default function AuthCard({ initialView = "signin" }: AuthCardProps) {
         <div className="auth-form">
           <div className="auth-forms">
             <form className="form-panel" onSubmit={handleSignIn}>
-              <h4>🔐 Entrar</h4>
+              <h4>
+                <span aria-hidden="true">🔐</span> Entrar
+              </h4>
               <p>Use suas credenciais para acessar o portal.</p>
 
               {signInError && <div className="auth-alert">{signInError}</div>}
@@ -363,7 +365,9 @@ export default function AuthCard({ initialView = "signin" }: AuthCardProps) {
             </form>
 
             <form className="form-panel" onSubmit={handleSignUp}>
-              <h4>✨ Criar conta</h4>
+              <h4>
+                <span aria-hidden="true">✨</span> Criar conta
+              </h4>
               <p>Preencha os dados para começar sua experiência.</p>
 
               {signUpError && <div className="auth-alert">{signUpError}</div>}
