@@ -68,6 +68,11 @@ export function ensureSupabaseCaCertSync(): string | null {
 
   const raw = process.env.SUPABASE_CA_CERT;
   if (!raw) {
+    const existingPath = findExistingCertPath();
+    if (existingPath) {
+      process.env.PGSSLROOTCERT = existingPath;
+      return existingPath;
+    }
     return null;
   }
 
@@ -86,6 +91,11 @@ export function ensureSupabaseCaCertSync(): string | null {
     return TMP_CERT_PATH;
   } catch (err) {
     console.error(`[SSL] Failed to write certificate synchronously:`, err);
+    const existingPath = findExistingCertPath();
+    if (existingPath) {
+      process.env.PGSSLROOTCERT = existingPath;
+      return existingPath;
+    }
     return null;
   }
 }
