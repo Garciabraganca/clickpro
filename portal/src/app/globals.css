@@ -169,9 +169,9 @@ body {
   background: var(--nav-bg);
   display: flex;
   flex-direction: column;
-  padding: 20px 16px;
+  padding: 20px 14px;
   position: relative;
-  gap: 16px;
+  gap: 12px;
 }
 
 .auth-nav li {
@@ -182,47 +182,57 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2px 0 12px;
+  padding: 2px 0 14px;
   position: relative;
 }
 
 
-.auth-nav .active-bar {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 33.33%;
-  height: 33.33%;
-  border-radius: 12px;
-  background: var(--bg-tertiary);
-  z-index: 0;
-  transition: 0.4s ease-in-out;
-  pointer-events: none;
-}
-
-.auth-card.signup .active-bar {
-  top: 66.66%;
+.auth-logo-title {
+  color: var(--text-primary) !important;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.06);
 }
 
 .nav-button {
   width: 100%;
   background: transparent;
   border: none;
-  padding: 12px 10px;
-  border-radius: 12px;
+  padding: 12px 12px;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   gap: 10px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text-secondary);
   cursor: pointer;
   position: relative;
   z-index: 1;
-  transition: 0.3s ease;
+  transition: color 0.25s ease, transform 0.25s ease;
+}
+
+.nav-button::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 14px;
+  background: var(--bg-tertiary);
+  border: 1px solid transparent;
+  box-shadow: 0 10px 22px transparent;
+  opacity: 0;
+  transform: translateY(6px) scale(0.98);
+  transition: opacity 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  z-index: -1;
 }
 
 .nav-button.active {
   color: var(--text-primary);
+  transform: translateY(-1px);
+}
+
+.nav-button.active::before {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  border-color: color-mix(in srgb, var(--border-color) 80%, transparent);
+  box-shadow: 0 10px 26px var(--shadow);
 }
 
 .auth-hero {
@@ -522,17 +532,6 @@ body {
     padding-bottom: 0;
   }
 
-  .auth-nav .active-bar {
-    top: auto;
-    bottom: 0;
-    height: 3px;
-    width: 33.33%;
-    left: 33.33%;
-  }
-
-  .auth-card.signup .active-bar {
-    left: 66.66%;
-  }
 
   .auth-hero {
     display: none;

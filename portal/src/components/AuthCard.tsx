@@ -278,9 +278,8 @@ export default function AuthCard({ initialView = "signin" }: AuthCardProps) {
     <div className="auth-page">
       <div className={viewClassName} data-view={view}>
         <ul className="auth-nav">
-          <li className="active-bar" aria-hidden="true" />
           <li className="auth-logo">
-            <Brand size="sm" />
+            <Brand size="sm" titleClassName="auth-logo-title" />
           </li>
           <li>
             <button
