@@ -35,12 +35,14 @@ export default function Brand({
         priority
       />
       <div className="leading-tight">
-        <p className={`font-bold text-slate-900 dark:text-slate-100 ${selected.title} ${titleClassName}`.trim()}>
+        <p className={`font-bold ${selected.title} ${titleClassName}`.trim()}
+          style={{ color: "var(--text-primary)" }}>
           ClickPro
         </p>
         {subtitle ? (
           <p
-            className={`text-slate-500 dark:text-slate-400 ${selected.subtitle} ${subtitleClassName}`.trim()}
+            className={`${selected.subtitle} ${subtitleClassName}`.trim()}
+            style={{ color: "var(--text-secondary)" }}
           >
             {subtitle}
           </p>
