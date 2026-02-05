@@ -135,16 +135,11 @@ body {
   padding-bottom: 10px;
 }
 
-.logo-badge {
+.auth-logo-image {
   width: 48px;
   height: 48px;
-  border-radius: 14px;
-  background: var(--color-primary);
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
+  object-fit: contain;
+  border-radius: 12px;
   box-shadow: 0 12px 20px rgba(70, 114, 255, 0.35);
 }
 
@@ -213,7 +208,9 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 10px;
+  align-items: center;
+  text-align: center;
+  gap: 12px;
 }
 
 .hero-content h2 {
@@ -226,9 +223,9 @@ body {
   color: rgba(255, 255, 255, 0.8);
 }
 
-.hero-content img {
+.auth-banner {
   width: 100%;
-  max-height: 140px;
+  max-height: 200px;
   object-fit: contain;
 }
 
@@ -260,8 +257,8 @@ body {
   justify-content: center;
 }
 
-.form-panel h4 {
-  font-size: 30px;
+.form-panel h2 {
+  font-size: 20px;
   font-weight: 700;
   color: var(--text-primary);
   text-align: center;

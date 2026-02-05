@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -25,9 +26,13 @@ export default function ForgotPasswordPage() {
         {/* Logo */}
         <div className="flex items-center justify-center gap-3 mb-8">
           <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-            <div className="w-12 h-12 rounded-xl bg-violet-600 flex items-center justify-center text-xl font-bold text-white shadow-lg shadow-violet-500/30">
-              CP
-            </div>
+            <Image
+              src="/logomarca-click-pro.png"
+              alt="ClickPro"
+              width={48}
+              height={48}
+              className="rounded-xl object-contain shadow-lg shadow-violet-500/30"
+            />
             <div>
               <h1 className="text-2xl font-bold text-white">ClickPro</h1>
               <p className="text-sm text-slate-400">Portal de Licenciamento</p>
