@@ -136,19 +136,6 @@ body {
   box-shadow: 0 12px 20px rgba(70, 114, 255, 0.35);
 }
 
-.logo-badge {
-  width: 48px;
-  height: 48px;
-  border-radius: 14px;
-  background: var(--color-primary);
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  box-shadow: 0 12px 20px rgba(70, 114, 255, 0.35);
-}
-
 .auth-nav .active-bar {
   position: absolute;
   left: 0;
