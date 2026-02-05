@@ -12,7 +12,7 @@ interface ThemeContextValue {
 }
 
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
-const STORAGE_KEY = "clickpro-theme";
+const STORAGE_KEY = "theme";
 
 function getSystemTheme(): Theme {
   if (typeof window === "undefined") return "light";
@@ -26,13 +26,13 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     const storedTheme = localStorage.getItem(STORAGE_KEY) as Theme | null;
     const nextTheme = storedTheme ?? getSystemTheme();
     setThemeState(nextTheme);
-    document.documentElement.dataset.theme = nextTheme;
+    document.documentElement.setAttribute("data-theme", nextTheme);
   }, []);
 
   const setTheme = (nextTheme: Theme) => {
     setThemeState(nextTheme);
     localStorage.setItem(STORAGE_KEY, nextTheme);
-    document.documentElement.dataset.theme = nextTheme;
+    document.documentElement.setAttribute("data-theme", nextTheme);
   };
 
   const toggleTheme = () => {
