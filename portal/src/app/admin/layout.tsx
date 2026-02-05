@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
-import Image from "next/image";
+import Brand from "@/components/Brand";
 
 export default function AdminLayout({
   children,
@@ -53,18 +53,13 @@ export default function AdminLayout({
       <header className="border-b border-slate-800 bg-slate-900">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Link href="/dashboard" className="flex items-center gap-3">
-              <Image
-                src="/logomarca-click-pro.png"
-                alt="ClickPro"
-                width={40}
-                height={40}
-                className="rounded-xl object-contain"
+            <Link href="/dashboard">
+              <Brand
+                size="md"
+                subtitle="Admin Panel"
+                titleClassName="text-white"
+                subtitleClassName="text-amber-400"
               />
-              <div>
-                <h1 className="text-lg font-bold text-white">ClickPro</h1>
-                <p className="text-xs text-amber-400">Admin Panel</p>
-              </div>
             </Link>
           </div>
 

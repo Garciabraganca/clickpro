@@ -3,8 +3,7 @@
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import LicenseStatus from "./LicenseStatus";
-import ThemeToggle from "./ThemeToggle";
-import Image from "next/image";
+import Brand from "./Brand";
 
 export default function DashboardHeader() {
   const { data: session } = useSession();
@@ -20,19 +19,9 @@ export default function DashboardHeader() {
         <div className="flex items-center gap-3">
           <Link
             href="/"
-            className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+            className="hover:opacity-80 transition-opacity"
           >
-            <Image
-              src="/logomarca-click-pro.png"
-              alt="ClickPro"
-              width={40}
-              height={40}
-              className="rounded-xl object-contain shadow-lg shadow-violet-500/30"
-            />
-            <div>
-              <h1 className="text-lg font-bold text-white">ClickPro</h1>
-              <p className="text-xs text-slate-400">Dashboard</p>
-            </div>
+            <Brand size="md" subtitle="Dashboard" titleClassName="text-white" subtitleClassName="text-slate-400" />
           </Link>
         </div>
 
@@ -56,7 +45,6 @@ export default function DashboardHeader() {
             </div>
           )}
 
-          <ThemeToggle />
 
           <nav className="flex items-center gap-3">
             {user?.role === "SUPER_ADMIN" && (
